@@ -28,8 +28,10 @@ public interface ChemicalService {
 
 	public int updateStatus(Long id, Integer status);
 
+
 	ResponseEntity<?> updateChemicalWithoutUniquenessCheck(Long id, ChemicalDTO chemicalDTO);
 
 	void updateChemicalFields(Chemical existingChemical, ChemicalDTO chemicalDTO);
+
 
 }

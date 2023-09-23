@@ -30,26 +30,39 @@ public interface CustomerOrderRepository extends CrudRepository<CustomerOrder, S
 	@Modifying
 	@Query(value = "UPDATE CustomerOrder SET cancel = :cancel  WHERE id IN :id ")
 	int cancel(@Param("id") String id, @Param("cancel") int cancel);
-	
+
 	@Transactional
 	@Modifying
 	@Query(value = "UPDATE CustomerOrder SET returned = :returned  WHERE id IN :id ")
 	int returned(@Param("id") String id, @Param("returned") int returned);
-	
+
 	@Transactional
 	@Modifying
 	@Query(value = "UPDATE CustomerOrder SET comment = :comment , mark_off = :mark_off , mark_off_date= :mark_off_date WHERE id IN :id ")
-	int markOff(@Param("id") String id, @Param("comment") String comment, @Param("mark_off") int markOff, @Param("mark_off_date") Date date);
+	int markOff(@Param("id") String id, @Param("comment") String comment, @Param("mark_off") int markOff,
+			@Param("mark_off_date") Date date);
 
 	@Transactional
 	@Modifying
 	@Query(value = "UPDATE CustomerOrder SET invoice_date = :invoice_date, invoice_url =:invoice_url, invoice_number =:invoice_number  WHERE id IN :id ")
-	int updateInvoice(@Param("id") String id, @Param("invoice_date") Date invoiceDate, @Param("invoice_url") String invoiceURL, @Param("invoice_number") String invoiceNumber);
+
+	int updateInvoice(@Param("id") String id, @Param("invoice_date") Date invoiceDate,
+			@Param("invoice_url") String invoiceURL, @Param("invoice_number") String invoiceNumber);
+
 
 	@Transactional
 	@Modifying
 	@Query(value = "UPDATE CustomerOrder SET price = :price , quantity = :quantity , total_price = :total_price , total_tax = :total_tax  WHERE id IN :id ")
 	int updatePrice(@Param("id") String id, @Param("price") Double price, @Param("quantity") Long quantity,
 			@Param("total_price") Double total_price, @Param("total_tax") Double total_tax);
+
+
+	@Transactional
+	@Modifying
+	@Query("SELECT COALESCE(SUM(co.price), 0) FROM CustomerOrder co")
+	Double sumTotalPrices();
+
+	
+	
 
 }

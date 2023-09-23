@@ -42,13 +42,13 @@ public class ElutionCustomer {
 	@Expose
 	@Column(name = "id")
 	private String id;
-	
+
 	@Column(name = "plant_name")
 	String plantName;
 
 	@Column(name = "plant_location")
 	String plantLocation;
-	
+
 	@Column(name = "tin")
 	Long tin;
 
@@ -58,18 +58,22 @@ public class ElutionCustomer {
 	@Column(name = "contact")
 	String contact;
 
-	@Column(name = "email")
+
+	@Column(name = "email", unique = true) // Add this line to make the email field unique
 	String email;
+	
 
 	@Column(name = "address")
 	String address;
 
 	@Column(name = "status")
 	int status;
-	
+
+
 	@Column(name = "block")
 	int block;
-	
+
+
 	@Column(name = "deleted")
 	int deleted;
 

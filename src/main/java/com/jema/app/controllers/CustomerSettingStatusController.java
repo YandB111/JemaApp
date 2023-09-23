@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.web.server.ResponseStatusException;
 import com.jema.app.dto.CustomerSettingStatusDTO;
 import com.jema.app.dto.CustomerSettingStatusListView;
 import com.jema.app.dto.PageRequestDTO;
@@ -62,23 +63,37 @@ public class CustomerSettingStatusController extends ApiController {
 	@CrossOrigin
 	@PostMapping(value = CUSTOMER_SETTING_STATUS_ADD, produces = "application/json")
 	public ResponseEntity<?> add(@Valid @RequestBody CustomerSettingStatusDTO customerSettingStatusDTO) {
-		logger.info("Request:In Customer Setting Status Controller for Add Status :{} ", customerSettingStatusDTO);
+
+		logger.info("Request: In Customer Setting Status Controller for Add Status: {}", customerSettingStatusDTO);
+
 		GenericResponse genericResponse = new GenericResponse();
 
 		CustomerSettingStatus customerSettingStatus = new CustomerSettingStatus();
 		BeanUtils.copyProperties(customerSettingStatusDTO, customerSettingStatus);
 		customerSettingStatus.setCreateTime(new Date());
 		customerSettingStatus.setUpdateTime(new Date());
-		Long id = customerSettingStatusService.save(customerSettingStatus);
-		customerSettingStatusDTO.setId(id);
 
-		return new ResponseEntity<GenericResponse>(
-				genericResponse.getResponse(customerSettingStatusDTO, "Successfully added", HttpStatus.OK),
-				HttpStatus.OK);
 
+		try {
+			Long id = customerSettingStatusService.save(customerSettingStatus);
+			customerSettingStatusDTO.setId(id);
+			return new ResponseEntity<GenericResponse>(
+					genericResponse.getResponse(customerSettingStatusDTO, "Successfully added", HttpStatus.OK),
+					HttpStatus.OK);
+		} catch (ResponseStatusException ex) {
+			if (ex.getStatus() == HttpStatus.CONFLICT) {
+				return new ResponseEntity<GenericResponse>(
+						genericResponse.getResponse(null, ex.getReason(), HttpStatus.CONFLICT), HttpStatus.CONFLICT);
+			} else {
+				throw ex;
+			}
+		}
 	}
+
+
+		
 	
-	
+
 	/*
 	 * ======================== Get All Status =================
 	 */
@@ -104,12 +119,12 @@ public class CustomerSettingStatusController extends ApiController {
 			e.printStackTrace();
 		}
 		Object obj = (new PageResponseDTO()).getRespose(dataList, recordsCount);
-		
+
+
 		return onSuccess(obj, Constants.STATUS_FETCHED);
 	}
 
-	
-	
+
 	/*
 	 * ======================== Delete Status ========================
 	 */
@@ -137,7 +152,7 @@ public class CustomerSettingStatusController extends ApiController {
 		}
 	}
 
-	
+
 	/*
 	 * ======================== Status Edit/Update ====================
 	 */
@@ -169,12 +184,14 @@ public class CustomerSettingStatusController extends ApiController {
 					HttpStatus.OK);
 
 		} else {
-			return new ResponseEntity<>(genericResponse.getResponse("", "Invalid Status", HttpStatus.OK), HttpStatus.OK);
+
+			return new ResponseEntity<>(genericResponse.getResponse("", "Invalid Status", HttpStatus.OK),
+					HttpStatus.OK);
+
 		}
 
 	}
 
-	
 
 	/*
 	 * ======================== Find One Status ========================
@@ -196,8 +213,12 @@ public class CustomerSettingStatusController extends ApiController {
 		logger.info("Response:details:of id     :{}  :{}  ", id, msg);
 		CustomerSettingStatusDTO mCustomerSettingStatusDTO = new CustomerSettingStatusDTO();
 		BeanUtils.copyProperties(customerSettingStatus, mCustomerSettingStatusDTO);
-		return new ResponseEntity<>(response.getResponse(mCustomerSettingStatusDTO,
-				mCustomerSettingStatusDTO != null ? "Status Found" : "No Status found", HttpStatus.OK), HttpStatus.OK);
+
+		return new ResponseEntity<>(
+				response.getResponse(mCustomerSettingStatusDTO,
+						mCustomerSettingStatusDTO != null ? "Status Found" : "No Status found", HttpStatus.OK),
+				HttpStatus.OK);
+
 	}
 
 	/*

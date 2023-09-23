@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.jema.app.dto.CustomerSettingTaxDTO;
 import com.jema.app.dto.ElutionCustomerSettingTaxDTO;
@@ -34,6 +35,7 @@ import com.jema.app.dto.PageRequestDTO;
 import com.jema.app.dto.PageResponseDTO;
 import com.jema.app.entities.CustomerSettingTax;
 import com.jema.app.entities.ElutionCustomerSettingTax;
+import com.jema.app.response.ElutionCustomerApiResponsev;
 import com.jema.app.response.GenericResponse;
 import com.jema.app.service.ElutionCustomerSettingTaxService;
 import com.jema.app.utils.Constants;
@@ -63,21 +65,40 @@ public class ElutionCustomerSettingTaxController extends ApiController {
 	@CrossOrigin
 	@PostMapping(value = ELUTION_CUSTOMER_SETTING_TAX_ADD, produces = "application/json")
 	public ResponseEntity<?> addTax(@Valid @RequestBody ElutionCustomerSettingTaxDTO mElutionCustomerSettingTaxDTO) {
-		logger.info("Request:In Elution Customer Setting Tax Controller for Add Tax :{} ", mElutionCustomerSettingTaxDTO);
-		GenericResponse genericResponse = new GenericResponse();
+	    logger.info("Request: In Elution Customer Setting Tax Controller for Add Tax: {}", mElutionCustomerSettingTaxDTO);
 
-		ElutionCustomerSettingTax mElutionCustomerSettingTax = new ElutionCustomerSettingTax();
-		BeanUtils.copyProperties(mElutionCustomerSettingTaxDTO, mElutionCustomerSettingTax);
-		mElutionCustomerSettingTax.setCreateTime(new Date());
-		mElutionCustomerSettingTax.setUpdateTime(new Date());
-		Long id = mElutionCustomerSettingTaxService.save(mElutionCustomerSettingTax);
-		mElutionCustomerSettingTaxDTO.setId(id);
+	    ElutionCustomerSettingTax mElutionCustomerSettingTax = new ElutionCustomerSettingTax();
+	    BeanUtils.copyProperties(mElutionCustomerSettingTaxDTO, mElutionCustomerSettingTax);
+	    mElutionCustomerSettingTax.setCreateTime(new Date());
+	    mElutionCustomerSettingTax.setUpdateTime(new Date());
 
-		return new ResponseEntity<GenericResponse>(
-				genericResponse.getResponse(mElutionCustomerSettingTaxDTO, "Successfully added", HttpStatus.OK),
-				HttpStatus.OK);
+	    try {
+	        Long id = mElutionCustomerSettingTaxService.save(mElutionCustomerSettingTax);
+	        mElutionCustomerSettingTaxDTO.setId(id);
 
+	        // Create a success response
+	        ElutionCustomerApiResponsev<ElutionCustomerSettingTaxDTO> successResponse = new ElutionCustomerApiResponsev<>();
+	        successResponse.setSuccess(true);
+	        successResponse.setMessage("Successfully added");
+	        successResponse.setData(mElutionCustomerSettingTaxDTO);
+
+	        return new ResponseEntity<>(successResponse, HttpStatus.OK);
+	    } catch (ResponseStatusException e) {
+	        // Create an error response with your custom message
+	        ElutionCustomerApiResponsev<String> errorResponse = new ElutionCustomerApiResponsev<>();
+	        errorResponse.setSuccess(false);
+
+	        // Set your custom message here
+	        errorResponse.setMessage("Tax with a similar name already exists");
+
+	        errorResponse.setData(null);
+
+	        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+	    }
 	}
+
+
+
 
 	/*
 	 * ======================== Delete Tax ========================

@@ -18,11 +18,17 @@ public interface AccountDetailsService {
 	public Long save(AccountDetails accountDetails);
 
 	public AccountDetails findById(Long id);
-	
+
 	public int delete(List<Long> idsArrays);
-	
+
 	public int updateBalance(Long id, Long balance);
-	
+
 	public List<AccountDetailsView> findAll(PageRequestDTO pageRequestDTO);
-	
+
+	void calculateAndSaveTotalBalance();
+
+	List<Long> getAllBalances();
+
+	Long calculateTotalBalance();
+
 }

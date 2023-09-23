@@ -11,11 +11,15 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.Tuple;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.persistence.Tuple;
+import java.util.List;
 
 import com.google.gson.Gson;
 import com.jema.app.dto.ElutionCustomerSettingLeadStatusListView;
@@ -39,7 +43,14 @@ public class ElutionCustomerSettingLeadStatusServiceImpl implements ElutionCusto
 
 	@Override
 	public Long save(ElutionCustomerSettingLeadStatus mElutionCustomerSettingLeadStatus) {
-		// TODO Auto-generated method stub
+
+		String statusName = mElutionCustomerSettingLeadStatus.getName();
+		boolean statusExistsWithName = mElutionCustomerSettingLeadStatusRepository.existsByNameIgnoreCase(statusName);
+		if (statusExistsWithName) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					"Lead Status with the same name already exists in the database.");
+		}
+
 		return mElutionCustomerSettingLeadStatusRepository.save(mElutionCustomerSettingLeadStatus).getId();
 	}
 
@@ -53,8 +64,9 @@ public class ElutionCustomerSettingLeadStatusServiceImpl implements ElutionCusto
 			baseBuery = baseBuery + " where i.name ilike '%" + pageRequestDTO.getKeyword().trim() + "%'";
 		}
 
-		baseBuery = baseBuery
-				+ " group by i.name, i.id, i.description, i.status, i.can_add_comment order by i.id DESC";
+
+		baseBuery = baseBuery + " group by i.name, i.id, i.description, i.status, i.can_add_comment order by i.id DESC";
+
 		// create a query to retrieve MyEntity objects
 		Query query = null;
 		try {

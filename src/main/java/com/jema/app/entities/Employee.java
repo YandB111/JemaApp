@@ -14,7 +14,6 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -51,6 +50,7 @@ public class Employee {
 	String name;
 
 	@Column(name = "employeeid", unique = true)
+
 	String employeeId;
 
 	@Column(name = "gender")
@@ -124,9 +124,20 @@ public class Employee {
 	private Date updateTime;
 
 	@Column(name = "amount_added")
-	private Long amountPaid;
+	private Long amountRecieved;
 
 	@Column(name = "last_payment_date")
 	private LocalDateTime lastPaymentDate;
 
+	@Column(name = "typeOfPayment", columnDefinition = "VARCHAR(255) DEFAULT 'Salary'")
+	private String typeOfPayment;
+
+	// type of payement for employees
+	public Employee() {
+		this.typeOfPayment = "Salary";
+	}
+
+	 @Column(name = "verification", columnDefinition = "VARCHAR(255) DEFAULT '0'")
+	    private String verification = "0";
+	
 }

@@ -41,4 +41,12 @@ public class ElutionMachineServiceEntity {
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date serviceDate;
 
+
+	// Add the maintaindate field
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "maintaindate")
+    private Date maintaindate;
+
+	
+
 }

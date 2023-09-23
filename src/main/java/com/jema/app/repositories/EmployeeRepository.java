@@ -9,6 +9,10 @@ package com.jema.app.repositories;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Repository;
+import org.springframework.data.repository.PagingAndSortingRepository;
+
+
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -17,6 +21,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.jema.app.entities.Employee;
+import com.jema.app.entities.SalaryDetails;
 
 @Repository
 public interface EmployeeRepository extends CrudRepository<Employee, Long> {
@@ -24,6 +29,7 @@ public interface EmployeeRepository extends CrudRepository<Employee, Long> {
 	Page<Employee> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
 	Page<Employee> findAll(Pageable pageable);
+
 
 	@Transactional
 	@Modifying
@@ -38,12 +44,30 @@ public interface EmployeeRepository extends CrudRepository<Employee, Long> {
 	@Query(value = "UPDATE SalaryDetails SET basicSalary = :basicSalary  WHERE id IN :id ")
 	int updateEmployeeBasicSalary(@Param("id") Long id, @Param("basicSalary") Long basicSalary);
 
-	boolean existsByEmail(String email);
 
-	boolean existsByName(String name);
+	@Query("SELECT e.salaryDetails.totalSalary FROM Employee e WHERE e.id = :employeeId")
+	Double findTotalSalaryByEmployeeId(@Param("employeeId") Long employeeId);
 
-	boolean existsByEmployeeId(String employeeId);
+	@Query("SELECT SUM(e.salaryDetails.totalSalary) FROM Employee e")
+	Double calculateTotalSalarySum();
 
-	boolean existsByContact(String contact);
+	boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);
+
+	boolean existsByContactIgnoreCaseAndIdNot(String contact, Long id);
+
+	boolean existsByEmailIgnoreCaseAndIdNot(String email, Long id);
+
+	boolean existsByEmployeeIdIgnoreCaseAndIdNot(String employeeId, Long id);
+
+	boolean existsByEmailAndIdNot(String email, Long id);
+
+	boolean existsByNameAndIdNot(String name, Long id);
+
+	boolean existsByEmployeeIdAndIdNot(String employeeId, Long id);
+
+	boolean existsByContactAndIdNot(String contact, Long id);
+
+	
+
 
 }

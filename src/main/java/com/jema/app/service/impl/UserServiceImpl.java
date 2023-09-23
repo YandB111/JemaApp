@@ -7,21 +7,18 @@
 
 package com.jema.app.service.impl;
 
+
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 //import org.springframework.security.authentication.BadCredentialsException;
 //import org.springframework.security.core.userdetails.UsernameNotFoundException;
 //import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.jema.app.dto.UserDTO;
 import com.jema.app.entities.User;
@@ -52,12 +49,14 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public User findByEmail(String email) {
+
 		Optional<User> optionalUser = userRepository.findByEmail(email);
 		if (optionalUser.isPresent()) {
 			return optionalUser.get();
 		} else {
 			throw new RuntimeException("Email address is incorrect.");
 		}
+
 	}
 
 	@Override
@@ -82,6 +81,7 @@ public class UserServiceImpl implements UserService {
 		return userModel;
 	}
 
+
 //	 @Override
 //	 public UserDTO login(String username, String password) {
 //	     UserDTO userModel = null;
@@ -103,6 +103,7 @@ public class UserServiceImpl implements UserService {
 //	     }
 //	 }
 
+
 	private UserDTO convertInModel(User optionalUser) {
 
 		UserDTO userModel = new UserDTO();
@@ -117,6 +118,7 @@ public class UserServiceImpl implements UserService {
 
 		return userModel;
 	}
+
 
 	@Override
 	public boolean changePassword(String oldPassword, String newPassword) {

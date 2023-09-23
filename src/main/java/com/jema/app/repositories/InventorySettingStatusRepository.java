@@ -25,4 +25,6 @@ public interface InventorySettingStatusRepository extends JpaRepository<Inventor
 	@Modifying
 	@Query(value = "UPDATE inventory_setting_status  SET status=?1  WHERE id IN ?2 ", nativeQuery = true)
 	int updateStatus(@Param("status") int status, @Param("id") List<Long> idsArrays);
+
+	InventorySettingStatus findByNameIgnoreCase(String statusName);
 }

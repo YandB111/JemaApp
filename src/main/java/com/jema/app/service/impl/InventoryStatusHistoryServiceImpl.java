@@ -33,7 +33,6 @@ public class InventoryStatusHistoryServiceImpl implements InventoryStatusHistory
 		// TODO Auto-generated method stub
 		return inventoryStatusHistoryRepository.findByInventoryRequestId(inventoryRequestId);
 	}
-	
-	
+
 
 }

@@ -24,14 +24,20 @@ public class LeaveServiceImpl implements LeaveTypeService {
 	@Autowired
 	LeaveTypeRepository leaveTypeRepository;
 
-	@Override
-	public Long save(LeaveType leaveType) {
-		if (leaveTypeRepository.existsByName(leaveType.getName())) {
-	        return -1L; // Return a special value to indicate conflict
+
+	 @Override
+	    public Long save(LeaveType leaveType) {
+	        String leaveTypeName = leaveType.getName();
+
+	        // Check if the leave type name already exists (case-sensitive)
+	        if (leaveTypeRepository.existsByNameIgnoreCase(leaveTypeName)) {
+	            return -1L; // Return a special value to indicate conflict
+	        }
+
+	        return leaveTypeRepository.save(leaveType).getId();
 	    }
-	    return leaveTypeRepository.save(leaveType).getId();
-	    
-	}
+
+
 
 	@Override
 	public List<LeaveType> findAll() {
@@ -63,5 +69,12 @@ public class LeaveServiceImpl implements LeaveTypeService {
 		return leaveTypeRepository.findByName(name);
 	}
 
+
+	@Override
+    public boolean existsByNameIgnoreCase(String leaveTypeName) {
+        return leaveTypeRepository.existsByNameIgnoreCase(leaveTypeName);
+    }
+
 	
+
 }

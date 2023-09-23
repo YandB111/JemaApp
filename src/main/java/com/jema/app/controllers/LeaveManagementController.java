@@ -23,14 +23,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.jema.app.dto.LeaveManagementDTO;
 import com.jema.app.dto.LeaveManagementView;
 import com.jema.app.dto.PageRequestDTO;
 import com.jema.app.dto.PageResponseDTO;
 import com.jema.app.entities.LeaveManagement;
-import com.jema.app.response.DepartmentErrorResponse;
+import com.jema.app.exceptions.DepartmentErrorResponse;
 import com.jema.app.response.GenericResponse;
 import com.jema.app.service.LeaveManagementService;
 import com.jema.app.utils.Constants;
@@ -60,48 +59,44 @@ public class LeaveManagementController extends ApiController {
 	@CrossOrigin
 	@PostMapping(value = LEAVE_MANAGEMENT_ADD, produces = "application/json")
 	public ResponseEntity<?> add(@Valid @RequestBody LeaveManagementDTO leaveManagementDTO) {
-	    logger.info("Request:In LeaveManagement Controller for Add Leave :{} ", leaveManagementDTO);
-	    GenericResponse genericResponse = new GenericResponse();
 
-	    try {
-	        LeaveManagement leaveManagement = new LeaveManagement();
-	        BeanUtils.copyProperties(leaveManagementDTO, leaveManagement);
-	        leaveManagement.setCreateTime(new Date());
-	        leaveManagement.setUpdateTime(new Date());
+		logger.info("Request:In LeaveManagement Controller for Add Leave :{} ", leaveManagementDTO);
+		GenericResponse genericResponse = new GenericResponse();
 
-	        if (leaveManagementService.isLeaveEntryExists(
-	                leaveManagement.getEmployeeId(),
-	                leaveManagement.getDate(),
-	                leaveManagement.getLeaveType())) {
-	            // Leave entry already exists for this employee, date, and leave type
-	            DepartmentErrorResponse customResponse = new DepartmentErrorResponse();
-	            customResponse.setStatus(HttpStatus.CONFLICT.value());
-	            customResponse.setError(HttpStatus.CONFLICT.getReasonPhrase());
-	            customResponse.setMessage("Attendance already marked for this date and leave type");
-	            customResponse.setTimestamp(new Date());
-	            return new ResponseEntity<>(customResponse, HttpStatus.CONFLICT);
-	        }
+		try {
+			LeaveManagement leaveManagement = new LeaveManagement();
+			BeanUtils.copyProperties(leaveManagementDTO, leaveManagement);
+			leaveManagement.setCreateTime(new Date());
+			leaveManagement.setUpdateTime(new Date());
 
-	        Long id = leaveManagementService.save(leaveManagement);
-	        leaveManagementDTO.setId(id);
+			if (leaveManagementService.isLeaveEntryExists(leaveManagement.getEmployeeId(), leaveManagement.getDate(),
+					leaveManagement.getLeaveType())) {
+				// Leave entry already exists for this employee, date, and leave type
+				DepartmentErrorResponse customResponse = new DepartmentErrorResponse();
+				customResponse.setStatus(HttpStatus.CONFLICT.value());
+				customResponse.setError(HttpStatus.CONFLICT.getReasonPhrase());
+				customResponse.setMessage("Attendance already marked for this date and leave type");
+				customResponse.setTimestamp(new Date());
+				return new ResponseEntity<>(customResponse, HttpStatus.CONFLICT);
+			}
 
-	        return new ResponseEntity<>(
-	                genericResponse.getResponse(leaveManagementDTO, "Successfully added", HttpStatus.OK),
-	                HttpStatus.OK
-	        );
-	    } catch (Exception e) {
-	        // Handle any unexpected exceptions and send a custom error response
-	        DepartmentErrorResponse customResponse = new DepartmentErrorResponse();
-	        customResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-	        customResponse.setError(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
-	        customResponse.setMessage("An unexpected error occurred.");
-	        customResponse.setTimestamp(new Date());
-	        return new ResponseEntity<>(customResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-	    }
+			Long id = leaveManagementService.save(leaveManagement);
+			leaveManagementDTO.setId(id);
+
+			return new ResponseEntity<>(
+					genericResponse.getResponse(leaveManagementDTO, "Successfully added", HttpStatus.OK),
+					HttpStatus.OK);
+		} catch (Exception e) {
+			// Handle any unexpected exceptions and send a custom error response
+			DepartmentErrorResponse customResponse = new DepartmentErrorResponse();
+			customResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+			customResponse.setError(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
+			customResponse.setMessage("An unexpected error occurred.");
+			customResponse.setTimestamp(new Date());
+			return new ResponseEntity<>(customResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 
-
-	
 	/*
 	 * ======================== Get All Leaves ======================
 	 */
@@ -128,7 +123,6 @@ public class LeaveManagementController extends ApiController {
 		Object obj = (new PageResponseDTO()).getRespose(dataList, recordsCount);
 		return onSuccess(obj, Constants.ATTENDANCE_FETCHED);
 	}
-
 
 	/*
 	 * ======================== Get Employee All Leaves ======================

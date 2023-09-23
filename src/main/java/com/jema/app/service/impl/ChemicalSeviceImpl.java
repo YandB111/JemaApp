@@ -40,31 +40,31 @@ public class ChemicalSeviceImpl implements ChemicalService {
 	@Autowired
 	private Gson gson;
 
-	// Save method with the check for existing chemical name
+
 	@Override
 	public Long save(Chemical chemical) {
-		String code = chemical.getCode();
-		String name = chemical.getName();
-
-		boolean codeExists = chemicalRepository.existsByCodeIgnoreCase(code);
-		boolean nameExists = chemicalRepository.existsByNameIgnoreCase(name);
-
-		if (codeExists) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Chemical with the same code already exists");
-		}
-
-		if (nameExists) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Chemical with the same name already exists");
-		}
-		Chemical savedChemical = chemicalRepository.save(chemical);
-		return savedChemical.getId();
+	    String code = chemical.getCode();
+	    String name = chemical.getName();
+	    Long id = chemical.getId(); 
+	    boolean codeExists = chemicalRepository.existsByCodeIgnoreCaseAndIdNot(code, id);
+	    boolean nameExists = chemicalRepository.existsByNameIgnoreCaseAndIdNot(name, id);
+	    if (codeExists) {
+	        throw new ResponseStatusException(HttpStatus.CONFLICT, "Chemical with the same code already exists");
+	    }
+	    if (nameExists) {
+	        throw new ResponseStatusException(HttpStatus.CONFLICT, "Chemical with the same name already exists");
+	    }
+	    Chemical savedChemical = chemicalRepository.save(chemical);
+	    return savedChemical.getId();
 	}
+
 
 	@Override
 	public List<ChemicalListView> findAll(PageRequestDTO pageRequestDTO) {
 		// TODO Auto-generated method stub
 		String baseBuery = "select count(*) over() as total, c.name as name, c.id as id, c.status as status, "
 				+ "c.description as description, c.code as code, c.quantity as quantity, c.price as price, "
+
 				+ "c.mssd as mssd, c.image as image, c.hs_code as hs_code, c.expiredate as expiredate "
 				+ "from chemical c ";
 		if (pageRequestDTO.getKeyword() != null && !pageRequestDTO.getKeyword().trim().isEmpty()) {
@@ -72,6 +72,7 @@ public class ChemicalSeviceImpl implements ChemicalService {
 					+ "%'";
 		} else {
 			baseBuery = baseBuery + "  where c.deleted!=1 ";
+
 		}
 
 		baseBuery = baseBuery
@@ -120,6 +121,7 @@ public class ChemicalSeviceImpl implements ChemicalService {
 		return chemicalRepository.updateStatus(id, status);
 	}
 
+
 	@Override
 	public ResponseEntity<?> updateChemicalWithoutUniquenessCheck(Long id, ChemicalDTO chemicalDTO) {
 		Chemical existingChemical = chemicalRepository.findById(id).orElse(null);
@@ -142,28 +144,19 @@ public class ChemicalSeviceImpl implements ChemicalService {
 
 	@Override
 	public void updateChemicalFields(Chemical existingChemical, ChemicalDTO chemicalDTO) {
-	    int appendCounter = 1;
 	    
-	    // Check if the new code already exists
 	    boolean newCodeExists = chemicalRepository.existsByCodeIgnoreCaseAndIdNot(chemicalDTO.getCode(), existingChemical.getId());
-
-	    while (newCodeExists) {
-	        // Append "_<appendCounter>" to the new code
-	        chemicalDTO.setCode(chemicalDTO.getCode() + "_" + appendCounter);
-	        appendCounter++;
-
-	        newCodeExists = chemicalRepository.existsByCodeIgnoreCaseAndIdNot(chemicalDTO.getCode(), existingChemical.getId());
-	    }
-
-	    // Check if the new name already exists
 	    boolean newNameExists = chemicalRepository.existsByNameIgnoreCaseAndIdNot(chemicalDTO.getName(), existingChemical.getId());
 
-	    while (newNameExists) {
-	        // Append "_<appendCounter>" to the new name
-	        chemicalDTO.setName(chemicalDTO.getName() + "_" + appendCounter);
-	        appendCounter++;
-
-	        newNameExists = chemicalRepository.existsByNameIgnoreCaseAndIdNot(chemicalDTO.getName(), existingChemical.getId());
+	    if (newCodeExists && newNameExists) {
+	        
+	        throw new ResponseStatusException(HttpStatus.CONFLICT, "Chemical with the same code and name already exists");
+	    } else if (newCodeExists) {
+	       
+	        throw new ResponseStatusException(HttpStatus.CONFLICT, "Chemical with the same code already exists");
+	    } else if (newNameExists) {
+	        
+	        throw new ResponseStatusException(HttpStatus.CONFLICT, "Chemical with the same name already exists");
 	    }
 
 	    // Update other fields from chemicalDTO as needed
@@ -171,7 +164,15 @@ public class ChemicalSeviceImpl implements ChemicalService {
 	    existingChemical.setName(chemicalDTO.getName());
 	    existingChemical.setDescription(chemicalDTO.getDescription());
 	    existingChemical.setPrice(chemicalDTO.getPrice());
-	    // ... update other fields as needed
+	    existingChemical.setHsCode(chemicalDTO.getHsCode());
+	    existingChemical.setImage(chemicalDTO.getImage());
+	    existingChemical.setMSSD(chemicalDTO.getMSSD());
+	    existingChemical.setQuantity(chemicalDTO.getQuantity());
+	    
+	   
+	    chemicalRepository.save(existingChemical);
 	}
 
+
 }
+

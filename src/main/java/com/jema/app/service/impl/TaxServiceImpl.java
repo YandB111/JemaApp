@@ -15,7 +15,9 @@ import javax.persistence.Query;
 import javax.persistence.Tuple;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.google.gson.Gson;
 import com.jema.app.dto.PageRequestDTO;
@@ -24,6 +26,7 @@ import com.jema.app.entities.Tax;
 import com.jema.app.repositories.TaxRepository;
 import com.jema.app.service.TaxService;
 import com.jema.app.utils.AppUtils;
+
 
 @Service
 public class TaxServiceImpl implements TaxService {
@@ -37,11 +40,29 @@ public class TaxServiceImpl implements TaxService {
 	@Autowired
 	private Gson gson;
 
+
+//	@Override
+//	public Long save(Tax tax) {
+//		// TODO Auto-generated method stub
+//		return taxRepository.save(tax).getId();
+//	}
+
 	@Override
 	public Long save(Tax tax) {
-		// TODO Auto-generated method stub
+		String taxName = tax.getName();
+
+		// Check if a tax with the same name already exists in the database
+		boolean taxExistsWithName = taxRepository.existsByNameIgnoreCase(taxName);
+
+		if (taxExistsWithName) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					"Tax with the same name already exists in the database.");
+		}
+
+		// Save the Tax instance if the name is unique
 		return taxRepository.save(tax).getId();
 	}
+	
 
 	@Override
 	public List<TaxListView> findAll(PageRequestDTO pageRequestDTO) {

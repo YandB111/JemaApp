@@ -7,6 +7,7 @@
 
 package com.jema.app.service.impl;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,7 +27,6 @@ import com.google.gson.Gson;
 import com.jema.app.dto.BranchView;
 import com.jema.app.dto.PageRequestDTO;
 import com.jema.app.entities.Branch;
-import com.jema.app.entities.Employee;
 import com.jema.app.repositories.BranchRepository;
 import com.jema.app.service.BranchService;
 import com.jema.app.utils.AppUtils;
@@ -42,8 +42,6 @@ public class BranchServiceImpl implements BranchService {
 
 	@Autowired
 	BranchRepository branchRepository;
-
-
 
 	@Override
 	public Page<Branch> findAllByName(String name, Pageable pageable) {
@@ -98,13 +96,17 @@ public class BranchServiceImpl implements BranchService {
 		String baseBuery = "select count(*) over() as total, b.name as name, b.id as id, "
 				+ "b.image as image, b.leader as leader, b.location as location, e.name as leadername, "
 				+ "b.status as status, b.contact as contact, b.email as email, b.totalemployee as totalemployee "
+
 				+ "from branch b " + "left join employee e on b.leader = e.id ";
+
 		if (pageRequestDTO.getKeyword() != null && !pageRequestDTO.getKeyword().trim().isEmpty()) {
 			baseBuery = baseBuery + " where b.name ilike '%" + pageRequestDTO.getKeyword().trim() + "%'";
 		}
 
+
 		baseBuery = baseBuery
 				+ " group by b.name, b.id, b.image, b.leader, b.location, e.name, b.status, b.contact, b.email, b.totalemployee order by b.id DESC";
+
 		// create a query to retrieve MyEntity objects
 		Query query = null;
 		try {
@@ -128,64 +130,89 @@ public class BranchServiceImpl implements BranchService {
 
 		return dataList;
 	}
-	
-	
-	
+
+
 	@Override
 	@Transactional
-	public Branch updateBranch(Long id, String newName, String newEmail) {
-	    Branch branchChange = branchRepository.findById(id)
-	            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Branch not found"));
+	public Branch updateBranch(Long id, String newName, String newEmail, String newImage, String newDescription,
+			String newLocation, Long newLeader, String newContact, Long newDepartment, Long newTotalEmployee,
+			Integer newStatus, Date newStartTime, Date newEndTime) {
+		Branch branchChange = branchRepository.findById(id)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Branch not found"));
 
-	    boolean nameExists;
-	    boolean emailExists;
-	    int appendCounter = 1;
+		// Check if the new email and new name already exist in the database
+		boolean emailExistsInOtherBranches = branchRepository.existsByEmailIgnoreCaseAndIdNot(newEmail, id);
+		boolean nameExistsInOtherBranches = branchRepository.existsByNameIgnoreCaseAndIdNot(newName, id);
 
-	    do {
-	        // Check if the new name is different and not already taken
-	        nameExists = newName != null && !newName.equalsIgnoreCase(branchChange.getName()) && branchRepository.existsByName(newName);
+		if (emailExistsInOtherBranches || nameExistsInOtherBranches) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					"Branch with the same email or name already exists in other branches.");
+			
+		}
 
-	        // Check if the new email is different and not already taken
-	        emailExists = newEmail != null && !newEmail.equalsIgnoreCase(branchChange.getEmail()) && branchRepository.existsByEmail(newEmail);
+		// Update the fields only if the new name is different from the current name
+		if (!newName.equalsIgnoreCase(branchChange.getName())) {
+			branchChange.setName(newName);
+		}
 
-	        if (nameExists) {
-	            newName = newName.toLowerCase() + "_" + appendCounter;
-	            appendCounter++;
-	        }
-	        if (emailExists) {
-	            newEmail = newEmail.toLowerCase() + "_" + appendCounter;
-	            appendCounter++;
-	        }
-	    } while (nameExists || emailExists);
+		// Update the fields only if the new email is different from the current email
+		if (!newEmail.equalsIgnoreCase(branchChange.getEmail())) {
+			branchChange.setEmail(newEmail);
+		}
 
-	    // Update the email and name with unique values
-	    if (newEmail != null) {
-	        branchChange.setEmail(newEmail);
-	    }
-	    if (newName != null) {
-	        branchChange.setName(newName);
-	    }
+		// Update other fields
+		branchChange.setImage(newImage);
+		branchChange.setDescription(newDescription);
+		branchChange.setLocation(newLocation);
+		branchChange.setLeader(newLeader);
+		branchChange.setContact(newContact);
+		branchChange.setDepartment(newDepartment);
+		branchChange.setTotalEmployee(newTotalEmployee);
+		branchChange.setStatus(newStatus);
+		branchChange.setStartTime(newStartTime);
+		branchChange.setEndTime(newEndTime);
 
-	    return branchRepository.save(branchChange);
+		return branchRepository.save(branchChange);
 	}
 
-
+	@Override
+	public boolean isEmailOrNameExists(String email, String name) {
+		return branchRepository.existsByEmailIgnoreCaseOrNameIgnoreCase(email, name);
+	}
 
 	@Override
-    public boolean isEmailOrNameExists(String email, String name) {
-        return branchRepository.existsByEmailIgnoreCaseOrNameIgnoreCase(email, name);
-    }
+	@Transactional
+	public Long save(Branch branch) {
+		String email = branch.getEmail();
+		String name = branch.getName();
 
-    @Override
-    @Transactional
-    public Long save(Branch branch) {
-        if (isEmailOrNameExists(branch.getEmail(), branch.getName())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Branch with the same email or name already exists");
-        }
-        return branchRepository.save(branch).getId();
-    }
+		boolean emailExists = branchRepository.existsByEmailIgnoreCase(email);
+		boolean nameExists = branchRepository.existsByNameIgnoreCase(name);
 
-	
+		if (emailExists || nameExists) {
+			String errorMessage = emailExists && nameExists ? "Branch with the same email and name already exists."
+					: emailExists ? "Branch with the same email already exists."
+							: "Branch with the same name already exists.";
+
+			throw new ResponseStatusException(HttpStatus.CONFLICT, errorMessage);
+		}
+
+		return branchRepository.save(branch).getId();
+	}
+
+	@Override
+	public boolean isEmailExistsInOtherBranches(String email, Long id) {
+		// Check if the provided email exists in other branches except for the given
+		// branch id
+		return branchRepository.existsByEmailIgnoreCaseAndIdNot(email, id);
+	}
+
+	@Override
+	public boolean isNameExistsInOtherBranches(String name, Long id) {
+		// Check if the provided name exists in other branches except for the given
+		// branch id
+		return branchRepository.existsByNameIgnoreCaseAndIdNot(name, id);
+	}
 
 
 }

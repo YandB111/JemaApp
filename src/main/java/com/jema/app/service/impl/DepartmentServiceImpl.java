@@ -17,25 +17,25 @@ import javax.persistence.Tuple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+
 import com.google.gson.Gson;
-import com.jema.app.dto.ChemicalDTO;
-import com.jema.app.dto.DepartmentDTO;
 import com.jema.app.dto.DepartmentView;
 import com.jema.app.dto.PageRequestDTO;
-
 import com.jema.app.entities.Department;
 import com.jema.app.repositories.DepartmentRepository;
 import com.jema.app.service.DepartmentService;
 import com.jema.app.utils.AppUtils;
 
 @Service
+
 public class DepartmentServiceImpl implements DepartmentService {
+
 
 	@Autowired
 	private EntityManager entityManager;
@@ -47,24 +47,18 @@ public class DepartmentServiceImpl implements DepartmentService {
 	DepartmentRepository departmentRepository;
 
 	@Override
+
 	@Transactional
 	public Long save(Department department) {
-		String code = department.getCode();
-		String name = department.getName();
+		boolean nameOrCodeExists = isNameOrCodeExists(department.getName(), department.getCode());
 
-		boolean codeExists = departmentRepository.existsByCodeIgnoreCase(code);
-		boolean nameExists = departmentRepository.existsByNameIgnoreCase(name);
-
-		if (codeExists) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Department with the same code already exists");
+		if (nameOrCodeExists) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					"Department with the same name or code already exists");
 		}
 
-		if (nameExists) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Department with the same name already exists");
-		}
 
-		Department savedDepartment = departmentRepository.save(department);
-		return savedDepartment.getId();
+		return departmentRepository.save(department).getId();
 	}
 
 	@Override
@@ -84,14 +78,18 @@ public class DepartmentServiceImpl implements DepartmentService {
 		// TODO Auto-generated method stub
 		String baseBuery = "select count(*) over() as total, d.name as name, d.id as id, "
 				+ "d.code as code, d.managedby as managedby,  e.name as managedbyname, "
+
 				+ "d.status as status, d.branch as branch,  b.name as branchname " + "from department d "
 				+ "left join branch b on d.branch = b.id " + "left join employee e on d.managedby = e.id ";
+
 		if (pageRequestDTO.getKeyword() != null && !pageRequestDTO.getKeyword().trim().isEmpty()) {
 			baseBuery = baseBuery + " where d.name ilike '%" + pageRequestDTO.getKeyword().trim() + "%'";
 		}
 
+
 		baseBuery = baseBuery
 				+ " group by d.name, d.id, d.code, d.managedby, e.name, d.status, d.branch, b.name order by d.id DESC";
+
 		// create a query to retrieve MyEntity objects
 		Query query = null;
 		try {
@@ -152,62 +150,45 @@ public class DepartmentServiceImpl implements DepartmentService {
 
 	}
 
+
 	@Override
-	public ResponseEntity<?> updateDepartment(Long id, DepartmentDTO departmentDTO) {
-		Department existingDep = departmentRepository.findById(id).orElse(null);
+	@Transactional
+	public Long updateDepartment(Department department) {
+		boolean nameOrCodeExists = isNameOrCodeExists(department.getName(), department.getCode(), department.getId());
 
-		if (existingDep != null) {
-			// Proceed with the update logic
-			updateDepartmenFields(existingDep, departmentDTO);
-
-			// Save the modified chemical entity
-			Department updatedDepartment = departmentRepository.save(existingDep);
-
-			// Return the updated chemical
-			return ResponseEntity.ok(updatedDepartment);
-		} else {
-			// Handle the situation where the chemical with the given id doesn't exist
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Chemical not found with ID: " + id);
+		if (nameOrCodeExists) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					"Department with the same name or code already exists.");
 		}
+
+		// Fetch the existing department from the database
+		Department existingDepartment = departmentRepository.findById(department.getId())
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Department not found"));
+
+		// Update the fields
+		existingDepartment.setName(department.getName());
+		existingDepartment.setCode(department.getCode());
+		existingDepartment.setManagedBy(department.getManagedBy());
+		existingDepartment.setBranch(department.getBranch());
+		// Update other fields as needed
+
+		return departmentRepository.save(existingDepartment).getId();
+	}
+
+	// Rest of your service methods...
+
+	private boolean isNameOrCodeExists(String name, String code) {
+		return departmentRepository.existsByNameOrCode(name, code);
 	}
 
 	@Override
-	public void updateDepartmenFields(Department department, DepartmentDTO departmentDTO) {
-		int appendCounter = 1;
+	public boolean isNameOrCodeExists(String name, String code, Long id) {
+		// Check if the name or code already exists in other departments
+		boolean nameExistsInOtherDepartments = departmentRepository.existsByNameIgnoreCaseAndIdNot(name, id);
+		boolean codeExistsInOtherDepartments = departmentRepository.existsByCodeIgnoreCaseAndIdNot(code, id);
 
-		// Check if the new code already exists
-		boolean newCodeExists = departmentRepository.existsByCodeIgnoreCaseAndIdNot(departmentDTO.getCode(),
-				department.getId());
-
-		while (newCodeExists) {
-			// Append "_<appendCounter>" to the new code
-			departmentDTO.setCode(departmentDTO.getCode() + "_" + appendCounter);
-			appendCounter++;
-
-			newCodeExists = departmentRepository.existsByCodeIgnoreCaseAndIdNot(departmentDTO.getCode(),
-					department.getId());
-		}
-
-		// Check if the new name already exists
-		boolean newNameExists = departmentRepository.existsByNameIgnoreCaseAndIdNot(departmentDTO.getName(),
-				department.getId());
-
-		while (newNameExists) {
-			// Append "_<appendCounter>" to the new name
-			departmentDTO.setName(departmentDTO.getName() + "_" + appendCounter);
-			appendCounter++;
-
-			newNameExists = departmentRepository.existsByNameIgnoreCaseAndIdNot(departmentDTO.getName(),
-					department.getId());
-		}
-
-		// Update other fields from chemicalDTO as needed
-		department.setCode(departmentDTO.getCode());
-		department.setName(departmentDTO.getName());
-		department.setBranch(departmentDTO.getBranch());
-		department.setManagedBy(departmentDTO.getManagedBy());
-		department.setStatus(departmentDTO.getStatus());
-		// ... update other fields as needed
+		return nameExistsInOtherDepartments || codeExistsInOtherDepartments;
 	}
+
 
 }

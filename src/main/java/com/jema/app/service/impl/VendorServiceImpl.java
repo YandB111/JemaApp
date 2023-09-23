@@ -9,6 +9,7 @@ package com.jema.app.service.impl;
 
 import java.util.List;
 
+
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.Tuple;
@@ -24,7 +25,6 @@ import com.jema.app.entities.Vendor;
 import com.jema.app.repositories.VendorRepository;
 import com.jema.app.service.VendorService;
 import com.jema.app.utils.AppUtils;
-
 @Service
 public class VendorServiceImpl implements VendorService {
 
@@ -39,10 +39,12 @@ public class VendorServiceImpl implements VendorService {
 
 	@Override
 	public Long save(Vendor vendor) {
+
 		String email = vendor.getEmail();
 		if (vendorRepository.existsEmail(email)) {
 			throw new IllegalArgumentException("Vendor with the same email already exists.");
 		}
+
 		return vendorRepository.save(vendor).getId();
 	}
 
@@ -106,6 +108,7 @@ public class VendorServiceImpl implements VendorService {
 	}
 
 	@Override
+
 	public List<VendorListViewByChemicalID> findAllVendorByChemicalId(PageRequestDTO pageRequestDTO, Long id) {
 		// TODO Auto-generated method stub
 		String baseBuery = "select count(*) over() as total, v.name as name, v.id as id, v.status as status, v.contact as contact, v.address as address "
@@ -118,6 +121,7 @@ public class VendorServiceImpl implements VendorService {
 		}
 
 		baseBuery = baseBuery + " group by v.name, v.id,v.status, v.contact, v.address order by v.id DESC";
+
 		// create a query to retrieve MyEntity objects
 		Query query = null;
 		try {
@@ -142,6 +146,7 @@ public class VendorServiceImpl implements VendorService {
 		return dataList;
 
 	}
+
 
 	@Override
 	public Long update(Vendor vendor) {
@@ -170,5 +175,16 @@ public class VendorServiceImpl implements VendorService {
 
 		return email;
 	}
+
+	public String getVendorNameById(Long vendorId) {
+		Vendor vendor = vendorRepository.findById(vendorId).orElse(null);
+		return vendor != null ? vendor.getName() : null;
+	}
+
+	@Override
+	public List<Vendor> findAll() {
+	    return (List<Vendor>) vendorRepository.findAll();
+	}
+
 
 }

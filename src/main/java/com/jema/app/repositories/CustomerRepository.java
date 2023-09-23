@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.jema.app.entities.Customer;
+import com.jema.app.entities.Type;
 
 @Repository
 public interface CustomerRepository extends CrudRepository<Customer, String> {
@@ -24,31 +25,22 @@ public interface CustomerRepository extends CrudRepository<Customer, String> {
 	@Transactional
 	@Modifying
 	@Query(value = "UPDATE Customer SET status = :status  WHERE id IN :id ")
-	int updateStatus(@Param("id") String id, @Param("status") int status);
+	int updateStatus(@Param("id") List<String> idsArrays, @Param("status") int status);
 
 	@Transactional
 	@Modifying
 	@Query(value = "UPDATE Customer  SET deleted = '1'  WHERE id IN ?1 ", nativeQuery = true)
 	int delete(@Param("id") List<String> idsArrays);
-
+	
 	@Query(value = "SELECT * FROM Customer WHERE id=?1 and deleted != '1'", nativeQuery = true)
 	Customer findCustomerById(@Param("id") String id);
-
+	
 	@Transactional
 	@Modifying
 	@Query(value = "UPDATE Customer SET block = :block  WHERE id IN :id ")
-	int block(@Param("id") String id, @Param("block") int block);
+	int block(@Param("id") List<String> idsArrays, @Param("block") int block);
 
-	boolean existsByName(String name);
+	Type findByNameIgnoreCase(String email);
 
-	boolean existsByEmail(String email);
-
-	
-
-	boolean existsByEmailIgnoreCaseAndIdNot(String email, String id);
-
-	boolean existsByNameIgnoreCaseAndIdNot(String name, String id);
-
-	boolean existsByEmailIgnoreCaseOrNameIgnoreCaseAndIdNot(String email, String name, String id);
-
+	Customer findByEmailIgnoreCaseAndIdNot(String updatedEmail, String id);
 }

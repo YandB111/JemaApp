@@ -15,6 +15,8 @@ import lombok.Data;
 public class InventoryRequestDTO {
 
 	private String id;
-	
+
+	private String vendorName;
+    private String verification = "0";
 	private List<InventoryRequestItemDTO> item;
 }

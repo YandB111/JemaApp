@@ -108,27 +108,26 @@ public class SalaryController extends ApiController {
 
 	@ApiOperation(value = "Get Employee All Salaries with Pagination", response = Iterable.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully Fetched."),
-			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
-			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
-			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+
+	        @ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+	        @ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+	        @ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
 	@CrossOrigin
 	@PostMapping(value = FIND_EMPLOYEE_ALL_SALARY, produces = "application/json")
 	public ResponseEntity<GenericResponse> getAll(@PathVariable(name = "id") Long id) {
-		logger.info("Rest request to get employee all Leaves {} ", id);
-		Long recordsCount = 0l;
-		
-		List<SalariesView> dataList = salaryService.findByEmployeeId(id);
+	    logger.info("Rest request to get employee all Salaries {} ", id);
+	    Long recordsCount = 0L;
 
-		try {
-			recordsCount = dataList.get(0).getTotal();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		Object obj = (new PageResponseDTO()).getRespose(dataList, recordsCount);
-		return onSuccess(obj, Constants.SALARIES_FETCHED);
+	    List<SalariesView> dataList = salaryService.findByEmployeeId(id);
+
+	    try {
+	        recordsCount = dataList.get(0).getTotal();
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    Object obj = (new PageResponseDTO()).getRespose(dataList, recordsCount);
+	    return onSuccess(obj, Constants.SALARIES_FETCHED);
 	}
-	
 	
 	/*
 	 * ======================== Paid Salary | Mark Salary Status Paid/Unpaid========================

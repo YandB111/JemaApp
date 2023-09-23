@@ -9,6 +9,7 @@ package com.jema.app.dto;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.jema.app.entities.BankDetails;
 import com.jema.app.entities.EducationDetails;
 import com.jema.app.entities.EmployeeDocuments;
@@ -43,6 +44,9 @@ public class EmployeeDTO {
 
 	String NIDA;
 
+	
+	private Long basicSalary;
+
 	String designation;
 
 	int status;
@@ -59,9 +63,7 @@ public class EmployeeDTO {
 
 	private BankDetails bankDetails;
 
-	
 	private SalaryDetails salaryDetails;
-
 	private List<EmployeeDocuments> employeeDocuments;
 
 }

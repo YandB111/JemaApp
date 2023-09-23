@@ -9,12 +9,6 @@ package com.jema.app.dto;
 
 import java.util.Date;
 
-import javax.persistence.Column;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-
-import org.springframework.data.annotation.CreatedDate;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gson.annotations.SerializedName;
 
@@ -54,9 +48,9 @@ public class InventoryRequestListView {
 	Double totalPrice;
 
 	int status;
-	
+
 	int cancel;
-	
+
 	@SerializedName("cancel_comment")
 	String cancelComment;
 
@@ -64,19 +58,21 @@ public class InventoryRequestListView {
 
 	@SerializedName("return_comment")
 	String returnComment;
-		
+
 	@SerializedName("mark_off")
 	int markOff;
-	
+
 	@SerializedName("comment")
 	String comment;
-	
+
 	@SerializedName("status_comment")
 	String statusComment;
+
 	
+
 	@SerializedName("createtime")
 	private Date createTime;
-	
+
 	@JsonIgnore
 	private Long total;
 

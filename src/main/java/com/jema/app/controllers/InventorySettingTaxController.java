@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.jema.app.dto.InventorySettingTaxDTO;
 import com.jema.app.dto.InventorySettingTaxListView;
@@ -61,21 +62,29 @@ public class InventorySettingTaxController extends ApiController {
 	@CrossOrigin
 	@PostMapping(value = INVENTORY_SETTING_TAX_ADD, produces = "application/json")
 	public ResponseEntity<?> addTax(@Valid @RequestBody InventorySettingTaxDTO inventorySettingTaxDTO) {
-		logger.info("Request:In Inventory Setting Tax Controller for Add Tax :{} ", inventorySettingTaxDTO);
-		GenericResponse genericResponse = new GenericResponse();
+	    logger.info("Request:In Inventory Setting Tax Controller for Add Tax :{} ", inventorySettingTaxDTO);
+	    GenericResponse genericResponse = new GenericResponse();
 
-		InventorySettingTax inventorySettingTax = new InventorySettingTax();
-		BeanUtils.copyProperties(inventorySettingTaxDTO, inventorySettingTax);
-		inventorySettingTax.setCreateTime(new Date());
-		inventorySettingTax.setUpdateTime(new Date());
-		Long id = inventorySettingTaxService.save(inventorySettingTax);
-		inventorySettingTaxDTO.setId(id);
+	    InventorySettingTax inventorySettingTax = new InventorySettingTax();
+	    BeanUtils.copyProperties(inventorySettingTaxDTO, inventorySettingTax);
+	    inventorySettingTax.setCreateTime(new Date());
+	    inventorySettingTax.setUpdateTime(new Date());
 
-		return new ResponseEntity<GenericResponse>(
-				genericResponse.getResponse(inventorySettingTaxDTO, "Successfully added", HttpStatus.OK),
-				HttpStatus.OK);
+	    try {
+	        Long id = inventorySettingTaxService.save(inventorySettingTax);
+	        inventorySettingTaxDTO.setId(id);
 
+	        return new ResponseEntity<GenericResponse>(
+	                genericResponse.getResponse(inventorySettingTaxDTO, "Successfully added", HttpStatus.OK),
+	                HttpStatus.OK);
+	    } catch (ResponseStatusException ex) {
+	        // Handle the conflict (HTTP 409) case
+	        return new ResponseEntity<GenericResponse>(
+	                genericResponse.getResponse(null, ex.getReason(), HttpStatus.CONFLICT),
+	                HttpStatus.CONFLICT);
+	    }
 	}
+
 
 	/*
 	 * ======================== Delete Tax ========================

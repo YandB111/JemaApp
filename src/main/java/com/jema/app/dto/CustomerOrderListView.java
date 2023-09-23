@@ -73,5 +73,7 @@ public class CustomerOrderListView {
 	
 	@JsonIgnore
 	private Long total;
+	
+	private String verification = "0";
 
 }

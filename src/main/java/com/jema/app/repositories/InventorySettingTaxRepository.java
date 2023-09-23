@@ -25,4 +25,6 @@ public interface InventorySettingTaxRepository extends JpaRepository<InventorySe
 	@Modifying
 	@Query(value = "UPDATE inventory_setting_tax  SET status=?1  WHERE id IN ?2 ", nativeQuery = true)
 	int updateStatus(@Param("status") int status, @Param("id") List<Long> idsArrays);
+
+	InventorySettingTax findByNameIgnoreCase(String taxName);
 }

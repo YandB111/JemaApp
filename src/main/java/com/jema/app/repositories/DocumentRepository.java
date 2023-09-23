@@ -26,4 +26,10 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 	@Query(value = "UPDATE Document  SET status=?1  WHERE id IN ?2 ", nativeQuery = true)
 	int updateStatus(@Param("status") int status, @Param("id") List<Long> idsArrays);
 
+
+	boolean existsByNameIgnoreCase(String name);
+
+	boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);
+
+
 }

@@ -28,9 +28,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.jema.app.dto.DocumentDTO;
 import com.jema.app.entities.Document;
+import com.jema.app.exceptions.DepartmentErrorResponse;
 import com.jema.app.response.GenericResponse;
 import com.jema.app.service.DocumentService;
 import com.jema.app.utils.Constants;
@@ -49,29 +51,55 @@ public class DocumentController extends ApiController {
 	@Autowired
 	DocumentService documentService;
 
+
+	public ResponseEntity<DepartmentErrorResponse> createErrorResponse(HttpStatus status, String message) {
+		DepartmentErrorResponse customResponse = new DepartmentErrorResponse();
+		customResponse.setStatus(status.value());
+		customResponse.setError(status.getReasonPhrase());
+		customResponse.setMessage(message);
+		customResponse.setTimestamp(new Date());
+		return new ResponseEntity<>(customResponse, status);
+	}
+
+
 	/*
 	 * ======================== Document ADD =================
 	 */
 	@ApiOperation(value = "Add Document", response = Iterable.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully deleted"),
-	@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
-	@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
-	@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+
+			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
 	@CrossOrigin
 	@PostMapping(value = DOCUMENT_ADD, produces = "application/json")
 	public ResponseEntity<?> add(@Valid @RequestBody DocumentDTO documentDTO) {
-		logger.info("Request:In Document Controller for Add Document :{} ", documentDTO);
+		logger.info("Request: In Document Controller for Add Document: {}", documentDTO);
+
 		GenericResponse genericResponse = new GenericResponse();
 
 		Document document = new Document();
 		BeanUtils.copyProperties(documentDTO, document);
 		document.setCreateTime(new Date());
 		document.setUpdateTime(new Date());
-		Long id = documentService.save(document);
-		documentDTO.setId(id);
 
-		return new ResponseEntity<GenericResponse>(
-				genericResponse.getResponse(documentDTO, "Successfully added", HttpStatus.OK), HttpStatus.OK);
+		try {
+			Long id = documentService.save(document);
+			documentDTO.setId(id);
+
+			return new ResponseEntity<GenericResponse>(
+					genericResponse.getResponse(documentDTO, "Document successfully added", HttpStatus.OK),
+					HttpStatus.OK);
+		} catch (ResponseStatusException e) {
+			// Handle conflict scenario
+			if (HttpStatus.CONFLICT.equals(e.getStatus())) {
+				return new ResponseEntity<>(genericResponse.getResponse("", e.getReason(), HttpStatus.CONFLICT),
+						HttpStatus.CONFLICT);
+			} else {
+				return new ResponseEntity<>(
+						genericResponse.getResponse("", "Error while adding document", HttpStatus.OK), HttpStatus.OK);
+			}
+		}
 
 	}
 
@@ -107,32 +135,47 @@ public class DocumentController extends ApiController {
 	 */
 	@CrossOrigin
 	@PutMapping(value = DOCUMENT_UPDATE, produces = "application/json")
-	public ResponseEntity<?> update(@PathVariable(name = "id", required = true) Long id,
-			@Valid @RequestBody DocumentDTO DocumentDTO) {
-		logger.info("Request:In Document Controller for Update Document :{} ", DocumentDTO);
+
+	public ResponseEntity<?> updateDocument(@PathVariable(name = "id", required = true) Long id,
+			@Valid @RequestBody DocumentDTO documentDTO) {
+		logger.info("Request: In Document Controller for Update Document: {}", documentDTO);
 		GenericResponse genericResponse = new GenericResponse();
 
-		Document mDocument = documentService.findById(id);
+		try {
+			Document existingDocument = documentService.findById(id);
 
-		if (mDocument != null) {
+			if (existingDocument != null) {
+				Document documentToUpdate = new Document();
+				BeanUtils.copyProperties(documentDTO, documentToUpdate);
+				documentToUpdate.setId(id);
+				documentToUpdate.setCreateTime(existingDocument.getCreateTime());
+				documentToUpdate.setUpdateTime(new Date());
 
-			Document document = new Document();
-			BeanUtils.copyProperties(DocumentDTO, document);
-			document.setId(id);
-			document.setCreateTime(mDocument.getCreateTime());
-			document.setUpdateTime(new Date());
+				// Update the document using the service's update method
+				Long updatedDocumentId = documentService.updateDocument(documentToUpdate);
 
-			Long mID = documentService.save(document);
-			DocumentDTO.setId(mID);
-			return new ResponseEntity<GenericResponse>(
-					genericResponse.getResponse(DocumentDTO, "Document successfully Updated", HttpStatus.OK),
-					HttpStatus.OK);
-
-		} else {
-			return new ResponseEntity<>(genericResponse.getResponse("", "Invalid Document", HttpStatus.OK),
-					HttpStatus.OK);
+				if (updatedDocumentId > 0) {
+					return new ResponseEntity<GenericResponse>(
+							genericResponse.getResponse(documentDTO, "Document successfully updated", HttpStatus.OK),
+							HttpStatus.OK);
+				} else {
+					return new ResponseEntity<>(
+							genericResponse.getResponse("", "Error while updating document", HttpStatus.OK),
+							HttpStatus.OK);
+				}
+			} else {
+				return new ResponseEntity<>(genericResponse.getResponse("", "Invalid Document", HttpStatus.OK),
+						HttpStatus.OK);
+			}
+		} catch (ResponseStatusException e) {
+			// Handle other validation errors
+			if (HttpStatus.CONFLICT.equals(e.getStatus())) {
+				return new ResponseEntity<>(genericResponse.getResponse("", e.getReason(), HttpStatus.CONFLICT),
+						HttpStatus.CONFLICT);
+			} else {
+				return createErrorResponse(HttpStatus.BAD_REQUEST, e.getReason());
+			}
 		}
-
 	}
 
 	/*

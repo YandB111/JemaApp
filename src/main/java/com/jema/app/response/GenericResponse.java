@@ -8,11 +8,8 @@ package com.jema.app.response;
 */
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -85,5 +82,5 @@ public class GenericResponse {
 		return "GenericResponse [timestamp=" + timestamp + ", status=" + status + ", message=" + message + ", data="
 				+ data.toString() + "]";
 	}
-	
+
 }

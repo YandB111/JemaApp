@@ -53,10 +53,10 @@ public class AccountDetails {
 	@Column(name = "balance")
 	Long balance;
 
-	
 
 	@OneToOne(mappedBy = "salaryDetails")
 	private Employee employee;
+
 
 	@Column(name = "createTime", nullable = false, updatable = false)
 	@Temporal(TemporalType.TIMESTAMP)
@@ -67,5 +67,20 @@ public class AccountDetails {
 	@Temporal(TemporalType.TIMESTAMP)
 	@LastModifiedDate
 	private Date updateTime;
+
+
+	@Column(name = "total_balance")
+	private Long totalBalance;
+	
+	
+	@Column(name = "total_amount_paid")
+	private Long totalAmountPaid;
+	
+	@Column(name = "original_balance")
+	private Long originalBalance;
+	
+	
+
+	
 
 }

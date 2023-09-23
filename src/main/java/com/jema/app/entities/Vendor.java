@@ -50,7 +50,9 @@ public class Vendor {
 	@Column(name = "contact")
 	String contact;
 
+
 	@Column(name = "email",unique = true)
+
 	String email;
 	
 	@Column(name = "deleted")

@@ -7,6 +7,7 @@
 
 package com.jema.app.utils;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Component;
 
 import com.jema.app.entities.Employee;
 import com.jema.app.entities.Salary;
+import com.jema.app.entities.SalaryAllowance;
+import com.jema.app.entities.SalaryDeduction;
 import com.jema.app.service.EmployeeService;
 
 @Component
@@ -56,24 +59,20 @@ public class SalaryUtils {
 		return mSalaryList;
 	}
 
-	private double calculateDeduction(Employee employee) {
-		// TODO Auto-generated method stub
-		double deduction = 0l;
-		for (int i = 0; i < employee.getSalaryDetails().getSalaryDeduction().size(); i++) {
-			deduction = deduction + employee.getSalaryDetails().getSalaryDeduction().get(i).getTaxValue();
+	private BigDecimal calculateDeduction(Employee employee) {
+		BigDecimal deduction = BigDecimal.ZERO;
+		for (SalaryDeduction deductionItem : employee.getSalaryDetails().getSalaryDeduction()) {
+			deduction = deduction.add(new BigDecimal(deductionItem.getTaxValue()));
 		}
 		return deduction;
 	}
 
-	private double calculateGross(Employee employee) {
-		// TODO Auto-generated method stub
-		double gross = 0l;
-		double basic = employee.getSalaryDetails().getBasicSalary();
-		double allowance = 0l;
-		for (int i = 0; i < employee.getSalaryDetails().getSalaryAllowance().size(); i++) {
-			allowance = allowance + employee.getSalaryDetails().getSalaryAllowance().get(i).getAllowanceValue();
+	private BigDecimal calculateGross(Employee employee) {
+		BigDecimal basic = new BigDecimal(employee.getSalaryDetails().getBasicSalary());
+		BigDecimal allowance = BigDecimal.ZERO;
+		for (SalaryAllowance allowanceItem : employee.getSalaryDetails().getSalaryAllowance()) {
+			allowance = allowance.add(new BigDecimal(allowanceItem.getAllowanceValue()));
 		}
-		gross = basic + allowance;
-		return gross;
+		return basic.add(allowance);
 	}
 }

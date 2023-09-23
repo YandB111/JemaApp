@@ -9,11 +9,18 @@ package com.jema.app.service;
 
 import java.util.List;
 
+
+import javax.validation.Valid;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.jema.app.dto.EmployeeDTO;
 import com.jema.app.dto.EmployeeListView;
 import com.jema.app.dto.PageRequestDTO;
+import com.jema.app.entities.Department;
+import com.jema.app.entities.ElutionCustomer;
+
 import com.jema.app.entities.Employee;
 
 public interface EmployeeService {
@@ -36,8 +43,15 @@ public interface EmployeeService {
 
 	public Long getCount(String name);
 
+
 	public int updateEmployeeBasicSalary(Long id, Long basicSalary);
 
-	Long update(Employee employee);
+	public List<Employee> findAllEmployees();
+
+	Double calculateTotalSalarySum();
+
+
+
+	
 
 }

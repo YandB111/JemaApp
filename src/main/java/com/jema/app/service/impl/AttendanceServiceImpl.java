@@ -9,14 +9,18 @@ package com.jema.app.service.impl;
 
 import java.util.List;
 
+
 import javax.transaction.Transactional;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+
 import com.amazonaws.services.alexaforbusiness.model.NotFoundException;
+
 import com.jema.app.entities.Attendance;
 import com.jema.app.repositories.AttendanceRepository;
 import com.jema.app.service.AttendanceService;
@@ -65,6 +69,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 		return null;
 	}
 
+
 	@Override
 	@Transactional
 	public Attendance updateLeaveStatus(Long id, int leaveStatus) {
@@ -76,5 +81,6 @@ public class AttendanceServiceImpl implements AttendanceService {
 
 		return attendanceRepository.save(attendance);
 	}
+
 
 }

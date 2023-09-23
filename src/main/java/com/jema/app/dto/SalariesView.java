@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gson.annotations.SerializedName;
+import com.jema.app.entities.SalaryDetails;
 
 import lombok.Data;
 
@@ -23,7 +24,7 @@ public class SalariesView {
 	private Long id;
 
 	private String name;
-	
+
 	@SerializedName("employee_id")
 	private String employeeId;
 
@@ -32,18 +33,29 @@ public class SalariesView {
 
 	@SerializedName("gross")
 	Long gross;
-	
+
 	@SerializedName("status")
 	Long status;
 
 	@SerializedName("deduction")
-	double deduction;
-	
+	Long deduction;
+
 	@SerializedName("taxes")
-	double taxes;
+	String taxes;
 
 	private Date date;
 
 	@JsonIgnore
 	private Long total;
+
+
+	
+	private Double totalSalary;
+
+	public void calculateTotalSalary(SalaryDetails salaryDetails) {
+	        if (salaryDetails != null) {
+	            this.totalSalary = salaryDetails.getTotalSalary();
+	        }
+	}
+
 }

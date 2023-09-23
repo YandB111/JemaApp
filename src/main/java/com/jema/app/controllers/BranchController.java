@@ -33,8 +33,8 @@ import com.jema.app.dto.BranchView;
 import com.jema.app.dto.PageRequestDTO;
 import com.jema.app.dto.PageResponseDTO;
 import com.jema.app.entities.Branch;
-import com.jema.app.entities.Chemical;
 import com.jema.app.repositories.BranchRepository;
+import com.jema.app.response.ConflictErrorResponse;
 import com.jema.app.response.DepartmentErrorResponse;
 import com.jema.app.response.GenericResponse;
 import com.jema.app.service.BranchService;
@@ -53,96 +53,112 @@ public class BranchController extends ApiController {
 
 	@Autowired
 	BranchService branchService;
-	
+
+
 	@Autowired
 	BranchRepository bracnBranchRepository;
-	
+
 	/*
 	 * ======================== Branch ADD ==================================
 	 */
+	public ResponseEntity<DepartmentErrorResponse> createErrorResponse(HttpStatus status, String message) {
+		DepartmentErrorResponse customResponse = new DepartmentErrorResponse();
+		customResponse.setStatus(status.value());
+		customResponse.setError(status.getReasonPhrase());
+		customResponse.setMessage(message);
+		customResponse.setTimestamp(new Date());
+		return new ResponseEntity<>(customResponse, status);
+	}
+
 	@CrossOrigin
 	@PostMapping(value = BRANCH_ADD, produces = "application/json")
 	public ResponseEntity<?> addBranch(@Valid @RequestBody BranchDTO branchDTO) {
-	    logger.info("Request: In Branch Controller for Add Branch: {}", branchDTO);
-	    GenericResponse genericResponse = new GenericResponse();
+		logger.info("Request: In Branch Controller for Add Branch: {}", branchDTO);
 
-	    try {
-	        // Check if the code or name already exists before saving
-	        if (branchService.isEmailOrNameExists(branchDTO.getEmail(), branchDTO.getName())) {
-	            DepartmentErrorResponse customResponse = new DepartmentErrorResponse();
-	            customResponse.setStatus(HttpStatus.CONFLICT.value());
-	            customResponse.setError(HttpStatus.CONFLICT.getReasonPhrase());
-	            customResponse.setMessage("Branch with the same email or name already exists.");
-	            customResponse.setTimestamp(new Date());
-	            return new ResponseEntity<>(customResponse, HttpStatus.CONFLICT);
-	        }
+		try {
+			// Check if the code or name already exists before saving
+			if (branchService.isEmailOrNameExists(branchDTO.getEmail(), branchDTO.getName())) {
+				ConflictErrorResponse customResponse = new ConflictErrorResponse();
+				customResponse.setStatus(HttpStatus.CONFLICT.value());
+				customResponse.setError(HttpStatus.CONFLICT.getReasonPhrase());
+				customResponse.setMessage("Branch with the same email or name already exists");
+				customResponse.setTimestamp(new Date());
+				return new ResponseEntity<>(customResponse, HttpStatus.CONFLICT);
+			}
 
-	        Branch branch = new Branch();
-	        BeanUtils.copyProperties(branchDTO, branch);
-	        branch.setCreateTime(new Date());
-	        branch.setUpdateTime(new Date());
-	        Long id = branchService.save(branch);
-	        branchDTO.setId(id);
+			Branch branch = new Branch();
+			BeanUtils.copyProperties(branchDTO, branch);
+			branch.setCreateTime(new Date());
+			branch.setUpdateTime(new Date());
+			Long id = branchService.save(branch);
+			branchDTO.setId(id);
 
-	        return new ResponseEntity<GenericResponse>(
-	                genericResponse.getResponse(branchDTO, "Branch successfully added", HttpStatus.OK), HttpStatus.OK);
-	    } catch (IllegalArgumentException e) {
-	        // Handle the IllegalArgumentException and send a custom error response
-	        DepartmentErrorResponse customResponse = new DepartmentErrorResponse();
-	        customResponse.setStatus(HttpStatus.CONFLICT.value());
-	        customResponse.setError(HttpStatus.CONFLICT.getReasonPhrase());
-	        customResponse.setMessage(e.getMessage());
-	        customResponse.setTimestamp(new Date());
-	        return new ResponseEntity<>(customResponse, HttpStatus.CONFLICT);
-	    } catch (Exception e) {
-	        // Handle any other unexpected exceptions and send a custom error response
-	        DepartmentErrorResponse customResponse = new DepartmentErrorResponse();
-	        customResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-	        customResponse.setError(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
-	        customResponse.setMessage("An unexpected error occurred.");
-	        customResponse.setTimestamp(new Date());
-	        return new ResponseEntity<>(customResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-	    }
+			return new ResponseEntity<>(branchDTO, HttpStatus.OK);
+		} catch (IllegalArgumentException e) {
+			// Handle the IllegalArgumentException and send a custom error response
+			ConflictErrorResponse customResponse = new ConflictErrorResponse();
+			customResponse.setStatus(HttpStatus.CONFLICT.value());
+			customResponse.setError(HttpStatus.CONFLICT.getReasonPhrase());
+			customResponse.setMessage(e.getMessage());
+			customResponse.setTimestamp(new Date());
+			return new ResponseEntity<>(customResponse, HttpStatus.CONFLICT);
+		} catch (Exception e) {
+			// Handle any other unexpected exceptions and send a custom error response
+			ConflictErrorResponse customResponse = new ConflictErrorResponse();
+			customResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+			customResponse.setError(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
+			customResponse.setMessage("An unexpected error occurred.");
+			customResponse.setTimestamp(new Date());
+			return new ResponseEntity<>(customResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
-
 
 	/*
 	 * ======================== Branch Edit/Update ========================
 	 */
+
 	@CrossOrigin
 	@PutMapping(value = BRANCH_UPDATE, produces = "application/json")
 	public ResponseEntity<?> updateBranch(@PathVariable(name = "id", required = true) Long id,
-	                                      @Valid @RequestBody BranchDTO branchDTO) {
-	    logger.info("Request: In Branch Controller for Update Branch: {}", branchDTO);
-	    GenericResponse genericResponse = new GenericResponse();
+			@Valid @RequestBody BranchDTO branchDTO) {
 
-	    Branch existingBranch = branchService.findById(id);
+		logger.info("Request: In Branch Controller for Update Branch: {}", branchDTO);
 
-	    if (existingBranch != null) {
-	        Branch branch = new Branch();
-	        BeanUtils.copyProperties(branchDTO, branch);
-	        branch.setId(id);
-	        branch.setCreateTime(existingBranch.getCreateTime());
-	        branch.setUpdateTime(new Date());
+		try {
+			// Fetch the existing branch from the database
+			Branch existingBranch = branchService.findById(id);
 
-	        try {
-	            // Update and save the branch using the new method
-	            Branch updatedBranch = branchService.updateBranch(id, branchDTO.getName(), branchDTO.getEmail());
+			// Check if the new email and new name already exist in the database
+			boolean emailExistsInOtherBranches = branchService.isEmailExistsInOtherBranches(branchDTO.getEmail(), id);
+			boolean nameExistsInOtherBranches = branchService.isNameExistsInOtherBranches(branchDTO.getName(), id);
 
-	            // Return the updated branch
-	            return ResponseEntity.ok(updatedBranch);
-	        } catch (ResponseStatusException e) {
-	            // Handle the uniqueness or other validation error
-	            return new ResponseEntity<>(genericResponse.getResponse("", e.getReason(), HttpStatus.BAD_REQUEST),
-	                    HttpStatus.BAD_REQUEST);
-	        }
-	    } else {
-	        return new ResponseEntity<>(genericResponse.getResponse("", "Invalid Branch", HttpStatus.BAD_REQUEST),
-	                HttpStatus.BAD_REQUEST);
-	    }
+			if (emailExistsInOtherBranches || nameExistsInOtherBranches) {
+				return createConflictErrorResponse("Branch with the same email or name already exists.");
+			}
+
+			// Update the branch using the implementation provided
+			Branch updatedBranch = branchService.updateBranch(id, branchDTO.getName(), branchDTO.getEmail(),
+					branchDTO.getImage(), branchDTO.getDescription(), branchDTO.getLocation(), branchDTO.getLeader(),
+					branchDTO.getContact(), branchDTO.getDepartment(), branchDTO.getTotalEmployee(),
+					branchDTO.getStatus(), branchDTO.getStartTime(), branchDTO.getEndTime());
+
+			// Return the updated branch
+			return ResponseEntity.ok(updatedBranch);
+		} catch (ResponseStatusException e) {
+			// Handle other validation errors
+			return createErrorResponse(HttpStatus.BAD_REQUEST, e.getReason());
+		}
 	}
 
+	private ResponseEntity<ConflictErrorResponse> createConflictErrorResponse(String message) {
+		ConflictErrorResponse customResponse = new ConflictErrorResponse();
+		customResponse.setStatus(HttpStatus.CONFLICT.value());
+		customResponse.setError(HttpStatus.CONFLICT.getReasonPhrase());
+		customResponse.setMessage(message);
+		customResponse.setTimestamp(new Date());
+		return new ResponseEntity<>(customResponse, HttpStatus.CONFLICT);
 
+	}
 	/*
 	 * ======================== Get All Branch's ==================================
 	 */

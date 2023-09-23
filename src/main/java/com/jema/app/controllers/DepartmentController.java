@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
 import org.springframework.web.server.ResponseStatusException;
 
 import com.jema.app.dto.DepartmentDTO;
@@ -39,10 +40,12 @@ import com.jema.app.dto.PageRequestDTO;
 import com.jema.app.dto.PageResponseDTO;
 import com.jema.app.entities.Branch;
 import com.jema.app.entities.Department;
+
 import com.jema.app.repositories.DepartmentRepository;
 import com.jema.app.response.DepartmentErrorResponse;
 import com.jema.app.response.GenericResponse;
 import com.jema.app.response.ResponseErrorChemical;
+
 import com.jema.app.service.BranchService;
 import com.jema.app.service.DepartmentService;
 import com.jema.app.utils.Constants;
@@ -67,113 +70,113 @@ public class DepartmentController extends ApiController {
 	@Autowired
 	DepartmentRepository departmentRepository;
 
+	public ResponseEntity<DepartmentErrorResponse> createErrorResponse(HttpStatus status, String message) {
+		DepartmentErrorResponse customResponse = new DepartmentErrorResponse();
+		customResponse.setStatus(status.value());
+		customResponse.setError(status.getReasonPhrase());
+		customResponse.setMessage(message);
+		customResponse.setTimestamp(new Date());
+		return new ResponseEntity<>(customResponse, status);
+	}
+
 	/*
 	 * ======================== Department ADD ==================================
 	 */
 	@CrossOrigin
 	@PostMapping(value = DEPARTMENT_ADD, produces = "application/json")
 	public ResponseEntity<?> addDepartment(@Valid @RequestBody DepartmentDTO departmentDTO) {
-	    logger.info("Request: In Department Controller for Add Department: {}", departmentDTO);
 
-	    Department department = new Department();
-	    BeanUtils.copyProperties(departmentDTO, department);
-	    department.setCreateTime(new Date());
-	    department.setUpdateTime(new Date());
-	    GenericResponse genericResponse = new GenericResponse();
+		logger.info("Request: In Department Controller for Add Department: {}", departmentDTO);
 
-	    try {
-	        Long id = departmentService.save(department);
-	        departmentDTO.setId(id);
+		GenericResponse genericResponse = new GenericResponse();
 
-	        return new ResponseEntity<>(
-	            genericResponse.getResponse(departmentDTO, "Department successfully added", HttpStatus.OK),
-	            HttpStatus.OK
-	        );
-	    } catch (ResponseStatusException e) {
-	        // Handle the ResponseStatusException and send a custom error response
-	        DepartmentErrorResponse customResponse = new DepartmentErrorResponse();
-	        customResponse.setStatus(HttpStatus.CONFLICT.value());
-	        customResponse.setError(HttpStatus.CONFLICT.getReasonPhrase());
-	        
-	        if (e.getReason().contains("code")) {
-	            customResponse.setMessage("Department with the same code already exists");
-	        } else if (e.getReason().contains("name")) {
-	            customResponse.setMessage("Department with the same name already exists");
-	        } else {
-	            customResponse.setMessage(e.getReason());
-	        }
-	        
-	        customResponse.setTimestamp(new Date());
-	        return new ResponseEntity<>(customResponse, HttpStatus.CONFLICT);
-	    }
-	}
+		Department department = new Department();
+		BeanUtils.copyProperties(departmentDTO, department);
+		department.setCreateTime(new Date());
+		department.setUpdateTime(new Date());
 
-/*
-		 * ======================== Department Edit/Update ========================
-		 */
+		try {
+			Long id = departmentService.save(department);
+			departmentDTO.setId(id);
+
+			return new ResponseEntity<>(
+					genericResponse.getResponse(departmentDTO, "Department successfully added", HttpStatus.OK),
+					HttpStatus.OK);
+		} catch (ResponseStatusException e) {
+			// Handle the ResponseStatusException and send a custom error response
+			DepartmentErrorResponse customResponse = new DepartmentErrorResponse();
+			customResponse.setStatus(HttpStatus.CONFLICT.value());
+			customResponse.setError(HttpStatus.CONFLICT.getReasonPhrase());
+
+			if (e.getReason().contains("code")) {
+				customResponse.setMessage("Department with the same name or code already exists");
+			} else if (e.getReason().contains("name")) {
+				customResponse.setMessage("Department with the same or code already exists");
+			} else {
+				customResponse.setMessage(e.getReason());
+			}
+
+			customResponse.setTimestamp(new Date());
+			return new ResponseEntity<>(customResponse, HttpStatus.CONFLICT);
+		}
+		}
+
+		
+
+	/*
+	 * ======================== Department Edit/Update ========================
+	 */
 	@CrossOrigin
 	@PutMapping(value = DEPARTMENT_UPDATE, produces = "application/json")
 	public ResponseEntity<?> updateDepartment(@PathVariable(name = "id", required = true) Long id,
-	        @Valid @RequestBody DepartmentDTO departmentDTO) {
-	    logger.info("Request:In Department Controller for Update Department :{} ", departmentDTO);
-	    GenericResponse genericResponse = new GenericResponse();
-	    Department mDepartment = departmentService.findById(id);
+			@Valid @RequestBody DepartmentDTO departmentDTO) {
 
-	    if (mDepartment != null) {
-	        // Clone the DTO to avoid modifying the original values
-	        Department department = new Department();
-	        BeanUtils.copyProperties(departmentDTO, department);
+		logger.info("Request: In Department Controller for Update Department: {}", departmentDTO);
+		GenericResponse genericResponse = new GenericResponse();
 
-	        // Append values until no conflict is found
-	        int appendCounter = 1;
-	        boolean conflictFound = false;
+		try {
+			Department existingDepartment = departmentService.findById(id);
 
-	        do {
-	            conflictFound = false;
+			if (existingDepartment == null) {
+				return new ResponseEntity<>(genericResponse.getResponse("", "Invalid Department", HttpStatus.OK),
+						HttpStatus.OK);
+			}
 
-	            // Check if the new code already exists
-	            boolean newCodeExists = departmentRepository.existsByCodeIgnoreCaseAndIdNot(department.getCode(),
-	                    department.getId());
+			Department updatedDepartment = new Department();
+			BeanUtils.copyProperties(departmentDTO, updatedDepartment, "id");
+			updatedDepartment.setId(id);
 
-	            if (newCodeExists) {
-	                department.setCode(departmentDTO.getCode() + "_" + appendCounter);
-	                appendCounter++;
-	                conflictFound = true;
-	            }
+			boolean nameOrCodeExists = departmentService.isNameOrCodeExists(updatedDepartment.getName(),
+					updatedDepartment.getCode(), id);
 
-	            // Check if the new name already exists
-	            boolean newNameExists = departmentRepository.existsByNameIgnoreCaseAndIdNot(department.getName(),
-	                    department.getId());
+			if (nameOrCodeExists) {
+				throw new ResponseStatusException(HttpStatus.CONFLICT,
+						"Department with the same name or code already exists");
+			}
 
-	            if (newNameExists) {
-	                department.setName(departmentDTO.getName() + "_" + appendCounter);
-	                appendCounter++;
-	                conflictFound = true;
-	            }
-	        } while (conflictFound);
+			// Update the department in the database using the service's update method
+			Long updatedDepartmentId = departmentService.updateDepartment(updatedDepartment);
+			if (updatedDepartmentId > 0) {
+				return new ResponseEntity<GenericResponse>(genericResponse.getResponse(updatedDepartment,
+						"Department successfully Updated", HttpStatus.OK), HttpStatus.OK);
+			} else {
+				return new ResponseEntity<>(
+						genericResponse.getResponse("", "Error While Department Updating", HttpStatus.OK),
+						HttpStatus.OK);
+			}
+		} catch (ResponseStatusException e) {
+			if (e.getStatus() == HttpStatus.CONFLICT) {
+				// Handle conflict case
+				String conflictMessage = "Department with the same name or code already exists";
+				return new ResponseEntity<>(genericResponse.getResponse("", conflictMessage, HttpStatus.CONFLICT),
+						HttpStatus.CONFLICT);
+			} else {
+				// Handle other validation errors
+				return createErrorResponse(HttpStatus.BAD_REQUEST, e.getReason());
+			}
+		}
 
-	        // Update other fields from DTO as needed
-	        department.setId(id);
-	        department.setStatus(mDepartment.getStatus());
-	        department.setCreateTime(mDepartment.getCreateTime());
-	        department.setUpdateTime(new Date());
-
-	        Long mID = departmentService.save(department);
-	        if (mID > 0) {
-	            return new ResponseEntity<GenericResponse>(
-	                    genericResponse.getResponse(department, "Department successfully Updated", HttpStatus.OK),
-	                    HttpStatus.OK);
-	        } else {
-	            return new ResponseEntity<>(
-	                    genericResponse.getResponse("", "Error While Department Updating", HttpStatus.OK),
-	                    HttpStatus.OK);
-	        }
-	    } else {
-	        return new ResponseEntity<>(genericResponse.getResponse("", "Invalid Department", HttpStatus.OK),
-	                HttpStatus.OK);
-	    }
 	}
-
 
 	/*
 	 * ======================== Get All Department's ========================

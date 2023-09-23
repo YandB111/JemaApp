@@ -8,7 +8,6 @@
 package com.jema.app.dto;
 
 import java.util.Date;
-import java.util.List;
 
 import javax.persistence.Column;
 
@@ -39,6 +38,7 @@ public class PriceHistoryListView {
 	@SerializedName("createtime")
 	Date createTime;
 	
+
 	@Column(name = "quantity")
 	Long quantity;
 	
@@ -46,5 +46,6 @@ public class PriceHistoryListView {
 	private Long total;
 
 	
+
 
 }

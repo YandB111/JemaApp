@@ -8,9 +8,13 @@
 package com.jema.app.service;
 
 import java.util.Date;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 import com.jema.app.dto.InventoryRequestDTO;
+
 import com.jema.app.dto.InventoryRequestListView;
 import com.jema.app.dto.PageRequestDTO;
 import com.jema.app.entities.InventoryRequest;
@@ -37,6 +41,6 @@ public interface InventoryRequestService {
 
 	public int updatePrice(String id, Double price, Long quantity, Double total_price, Double total_tax);
 
-	
+	List<InventoryRequest> findAllInventoryRequests();
 
 }

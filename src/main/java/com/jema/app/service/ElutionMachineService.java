@@ -11,7 +11,6 @@ import java.util.List;
 
 import com.jema.app.dto.ElutionMachineListView;
 import com.jema.app.dto.PageRequestDTO;
-import com.jema.app.entities.ElutionCustomer;
 import com.jema.app.entities.ElutionMachine;
 
 public interface ElutionMachineService {

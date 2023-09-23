@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.jema.app.dto.ElutionCustomerSettingLeadStatusDTO;
 import com.jema.app.dto.ElutionCustomerSettingLeadStatusListView;
@@ -69,6 +70,10 @@ public class ElutionCustomerSettingLeadStatusController extends ApiController {
 		BeanUtils.copyProperties(mElutionCustomerSettingLeadStatusDTO, mElutionCustomerSettingLeadStatus);
 		mElutionCustomerSettingLeadStatus.setCreateTime(new Date());
 		mElutionCustomerSettingLeadStatus.setUpdateTime(new Date());
+
+		
+		try {
+
 		Long id = mElutionCustomerSettingLeadStatusService.save(mElutionCustomerSettingLeadStatus);
 		mElutionCustomerSettingLeadStatusDTO.setId(id);
 
@@ -76,9 +81,20 @@ public class ElutionCustomerSettingLeadStatusController extends ApiController {
 				genericResponse.getResponse(mElutionCustomerSettingLeadStatusDTO, "Successfully added", HttpStatus.OK),
 				HttpStatus.OK);
 
+		} catch (ResponseStatusException ex) {
+			if (ex.getStatus() == HttpStatus.CONFLICT) {
+				return new ResponseEntity<GenericResponse>(
+						genericResponse.getResponse(null, ex.getReason(), HttpStatus.CONFLICT), HttpStatus.CONFLICT);
+			} else {
+				throw ex;
+			}
+			
+		}
 	}
 	
 	
+	
+
 	/*
 	 * ======================== Get All Status =================
 	 */

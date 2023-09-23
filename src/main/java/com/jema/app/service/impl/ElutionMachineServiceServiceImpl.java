@@ -20,7 +20,9 @@ import com.google.gson.Gson;
 import com.jema.app.dto.ElutionMachineServiceListView;
 import com.jema.app.dto.PageRequestDTO;
 import com.jema.app.entities.ElutionMachineServiceEntity;
+import com.jema.app.repositories.ElutionMachineRepository;
 import com.jema.app.repositories.ElutionMachineServiceRepository;
+import com.jema.app.service.ElutionMachineService;
 import com.jema.app.service.ElutionMachineServiceService;
 import com.jema.app.utils.AppUtils;
 
@@ -29,12 +31,21 @@ public class ElutionMachineServiceServiceImpl implements ElutionMachineServiceSe
 
 	@Autowired
 	ElutionMachineServiceRepository mElutionMachineServiceRepository;
-	
+
 	@Autowired
 	private EntityManager entityManager;
 
 	@Autowired
 	private Gson gson;
+
+
+	@Autowired
+	private ElutionMachineRepository elutionMachineRepository;
+	
+	@Autowired
+	ElutionMachineService mElutionMachineServiceService;
+
+
 	
 	@Override
 	public Long save(ElutionMachineServiceEntity mElutionMachineServiceEntity) {
@@ -48,8 +59,10 @@ public class ElutionMachineServiceServiceImpl implements ElutionMachineServiceSe
 		String baseBuery = "select count(*) over() as total, m.name as name, m.id as id, "
 				+ "m.maintenance_days as maintenance_days, m.image as image, s.service_date as service_date "
 				+ "from elution_machine m LEFT JOIN LATERAL ("
-				+" SELECT service_date FROM elution_machine_service WHERE machine_id = m.id "
-				+" ORDER BY service_date DESC LIMIT 1) s ON true ";
+
+				+ " SELECT service_date FROM elution_machine_service WHERE machine_id = m.id "
+				+ " ORDER BY service_date DESC LIMIT 1) s ON true ";
+
 		if (pageRequestDTO.getKeyword() != null && !pageRequestDTO.getKeyword().trim().isEmpty()) {
 			baseBuery = baseBuery + " where m.deleted!=1 and m.name ilike '%" + pageRequestDTO.getKeyword().trim()
 					+ "%'";
@@ -77,7 +90,10 @@ public class ElutionMachineServiceServiceImpl implements ElutionMachineServiceSe
 		// execute the query and obtain the list of entities for the requested page
 		List<Tuple> tuples = query.getResultList();
 
-		List<ElutionMachineServiceListView> dataList = AppUtils.parseTuple(tuples, ElutionMachineServiceListView.class, gson);
+
+		List<ElutionMachineServiceListView> dataList = AppUtils.parseTuple(tuples, ElutionMachineServiceListView.class,
+				gson);
+
 //		attendanceView.convertIntoDTO(tuples);
 
 		return dataList;
@@ -85,3 +101,4 @@ public class ElutionMachineServiceServiceImpl implements ElutionMachineServiceSe
 	}
 
 }
+

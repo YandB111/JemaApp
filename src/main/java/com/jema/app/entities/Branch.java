@@ -44,7 +44,10 @@ public class Branch {
 	@Column(name = "image")
 	String image;
 
+
 	@Column(name = "name", unique = true)
+
+	
 	String name;
 
 	@Column(name = "description")
@@ -53,7 +56,9 @@ public class Branch {
 	@Column(name = "location")
 	String location;
 
+
 	@Column(name = "email", unique = true)
+
 	String email;
 
 	@Column(name = "leader")
@@ -88,7 +93,6 @@ public class Branch {
 	@Temporal(TemporalType.TIMESTAMP)
 	@LastModifiedDate
 	private Date updateTime;
-	
-	
+
 	
 }

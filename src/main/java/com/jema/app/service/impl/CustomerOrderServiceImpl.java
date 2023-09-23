@@ -7,6 +7,8 @@
 
 package com.jema.app.service.impl;
 
+
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -20,10 +22,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.gson.Gson;
+import com.jema.app.dto.CustomerOrderDTO;
 import com.jema.app.dto.CustomerOrderListView;
 import com.jema.app.dto.PageRequestDTO;
+import com.jema.app.entities.Customer;
 import com.jema.app.entities.CustomerOrder;
+import com.jema.app.repositories.AccountDetailsRepository;
 import com.jema.app.repositories.CustomerOrderRepository;
+import com.jema.app.repositories.CustomerRepository;
 import com.jema.app.service.CustomerOrderService;
 import com.jema.app.utils.AppUtils;
 
@@ -39,11 +45,28 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
 	@Autowired
 	CustomerOrderRepository mCustomerOrderRepository;
 
+
+	@Autowired
+	AccountDetailsRepository accountDetailsRepository;
+
+	@Autowired
+	CustomerRepository mCustomerRepository;
+
+	
 	@Transactional
 	@Override
 	public String save(CustomerOrder customerOrder) {
-		// TODO Auto-generated method stub
-		return mCustomerOrderRepository.save(customerOrder).getId();
+		// ... existing code ...
+
+		// Calculate and update TotalAmountReceived
+		Double totalAmountReceived = calculateTotalAmountReceived();
+		customerOrder.setTotalAmountReceived(totalAmountReceived);
+
+		// Save the customer order
+		String id = mCustomerOrderRepository.save(customerOrder).getId();
+
+		return id;
+
 	}
 
 	@Override
@@ -176,4 +199,21 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
 		// TODO Auto-generated method stub
 		return mCustomerOrderRepository.updatePrice(id, price, quantity, total_price, total_tax);
 	}
+
+
+	@Override
+	public Double calculateTotalAmountReceived() {
+		List<CustomerOrder> allOrders = (List<CustomerOrder>) mCustomerOrderRepository.findAll();
+		return allOrders.stream().mapToDouble(CustomerOrder::getPrice).sum();
+	}
+
+	@Override
+	public List<CustomerOrder> findAllCustomerOrders() {
+		return (List<CustomerOrder>) mCustomerOrderRepository.findAll();
+	}
+
+
+
+	
+
 }

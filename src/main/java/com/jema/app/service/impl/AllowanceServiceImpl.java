@@ -12,7 +12,11 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 
 import com.jema.app.entities.Allowance;
 import com.jema.app.repositories.AllowanceRepository;
@@ -26,7 +30,14 @@ public class AllowanceServiceImpl implements AllowanceService{
 	
 	@Override
 	public Long save(Allowance allowance) {
-		// TODO Auto-generated method stub
+
+		String statusName = allowance.getName();
+		boolean statusExistsWithName = allowanceRepository.existsByNameIgnoreCase(statusName);
+		if (statusExistsWithName) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					"Allowance with the same name already exists in the database.");
+		}
+
 		return allowanceRepository.save(allowance).getId();
 	}
 

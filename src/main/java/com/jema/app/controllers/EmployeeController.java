@@ -9,6 +9,7 @@ package com.jema.app.controllers;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import javax.validation.Valid;
 
@@ -16,6 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -25,21 +30,25 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
+import com.jema.app.dto.BranchDTO;
 import com.jema.app.dto.EmployeeDTO;
 import com.jema.app.dto.EmployeeListView;
+import com.jema.app.dto.LeaveManagementView;
 import com.jema.app.dto.PageRequestDTO;
 import com.jema.app.dto.PageResponseDTO;
+import com.jema.app.entities.Department;
 import com.jema.app.entities.Employee;
-import com.jema.app.response.DepartmentErrorResponse;
+import com.jema.app.repositories.EmployeeRepository;
 import com.jema.app.response.GenericResponse;
 import com.jema.app.service.EmployeeService;
 import com.jema.app.utils.Constants;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
@@ -52,6 +61,8 @@ public class EmployeeController extends ApiController {
 	@Autowired
 	EmployeeService employeeService;
 	
+	@Autowired
+	EmployeeRepository employeeRepository;
 
 	/*
 	 * ======================== Employee ADD ==================================
@@ -59,76 +70,90 @@ public class EmployeeController extends ApiController {
 	@CrossOrigin
 	@PostMapping(value = EMPLOYEE_ADD, produces = "application/json")
 	public ResponseEntity<?> addEmployee(@Valid @RequestBody EmployeeDTO employeeDTO) {
-		logger.info("Request:In Employee Controller for Add Employee :{} ", employeeDTO);
-		GenericResponse genericResponse = new GenericResponse();
-		try {
-			Employee employee = new Employee();
-			BeanUtils.copyProperties(employeeDTO, employee);
-			employee.setCreateTime(new Date());
-			employee.setUpdateTime(new Date());
+	    logger.info("Request: In Employee Controller for Add Employee: {}", employeeDTO);
+	    GenericResponse genericResponse = new GenericResponse();
 
-			// Calculate and set total value in salary details
-			employee.getSalaryDetails().calculateAndSetTotalValue();
+	    // Check for conflicts before adding the employee
+	    if (isEmployeeDataValid(employeeDTO)) {
+	        Employee employee = new Employee();
+	        BeanUtils.copyProperties(employeeDTO, employee);
+	        employee.setCreateTime(new Date());
+	        employee.setUpdateTime(new Date());
+	        Long id = employeeService.save(employee);
+	        employeeDTO.setId(id);
 
-			Long id = employeeService.save(employee);
-			employeeDTO.setId(id);
+	        return new ResponseEntity<GenericResponse>(
+	                genericResponse.getResponse(employeeDTO, "Employee successfully added", HttpStatus.OK), HttpStatus.OK);
+	    } else {
+	        // Conflict with existing data
+	        return new ResponseEntity<>(genericResponse.getResponse("", "Employee data conflicts with existing records", HttpStatus.CONFLICT),
+	                HttpStatus.CONFLICT);
+	    }
+	}
+	private boolean isEmployeeDataValid(@Valid EmployeeDTO employeeDTO) {
+	    // Retrieve the employee from the database using the ID from employeeDTO
+	    Optional<Employee> existingEmployee = employeeRepository.findById(employeeDTO.getId());
 
-			return new ResponseEntity<GenericResponse>(
-					genericResponse.getResponse(employeeDTO, "Employee successfully added", HttpStatus.OK),
-					HttpStatus.OK);
-		} catch (ResponseStatusException e) {
-			// Handle ResponseStatusException and send a custom error response
-			DepartmentErrorResponse customResponse = new DepartmentErrorResponse();
-			customResponse.setStatus(HttpStatus.CONFLICT.value());
-			customResponse.setError(HttpStatus.CONFLICT.getReasonPhrase());
-			customResponse.setMessage(e.getReason());
-			customResponse.setTimestamp(new Date());
-			return new ResponseEntity<>(customResponse, HttpStatus.CONFLICT);
-		} catch (Exception e) {
-			// Handle any other unexpected exceptions and send a custom error response
-			DepartmentErrorResponse customResponse = new DepartmentErrorResponse();
-			customResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-			customResponse.setError(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
-			customResponse.setMessage("An unexpected error occurred.");
-			customResponse.setTimestamp(new Date());
-			return new ResponseEntity<>(customResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
+	    if (existingEmployee != null) {
+	        // Check if the updated values conflict with other employees
+	        return !employeeRepository.existsByEmailAndIdNot(employeeDTO.getEmail(), employeeDTO.getId())
+	                && !employeeRepository.existsByNameAndIdNot(employeeDTO.getName(), employeeDTO.getId())
+	                && !employeeRepository.existsByEmployeeIdAndIdNot(employeeDTO.getEmployeeId(), employeeDTO.getId())
+	                && !employeeRepository.existsByContactAndIdNot(employeeDTO.getContact(), employeeDTO.getId());
+	    } else {
+	        // Employee with the specified ID does not exist, no conflict
+	        return true;
+	    }
 	}
 
+	
 	/*
 	 * ======================== Employee Edit/Update ========================
 	 */
 	@CrossOrigin
 	@PutMapping(value = EMPLOYEE_UPDATE, produces = "application/json")
 	public ResponseEntity<?> updateEmployee(@PathVariable(name = "id", required = true) Long id,
-			@Valid @RequestBody EmployeeDTO employeeDTO) {
-		logger.info("Request:In Employee Controller for Update Employee :{} ", employeeDTO);
-		GenericResponse genericResponse = new GenericResponse();
+	        @Valid @RequestBody EmployeeDTO employeeDTO) {
+	    logger.info("Request: In Employee Controller for Update Employee: {}", employeeDTO);
+	    GenericResponse genericResponse = new GenericResponse();
 
-		Employee mEmployee = employeeService.findById(id);
+	    Employee existingEmployee = employeeService.findById(id);
 
-		if (mEmployee != null) {
-			Employee employee = new Employee();
-			BeanUtils.copyProperties(employeeDTO, employee);
-			employee.setId(id);
-			employee.setCreateTime(mEmployee.getCreateTime());
-			employee.setUpdateTime(new Date());
+	    if (existingEmployee != null) {
+	        if (isDataConflicting(existingEmployee, employeeDTO)) {
+	            // Conflict with other employees, return a conflict response
+	            return new ResponseEntity<>(genericResponse.getResponse("", "Employee data already exists", HttpStatus.CONFLICT),
+	                    HttpStatus.CONFLICT);
+	        }
 
-			try {
-				Long mID = employeeService.update(employee); // Use the update method from your service
-				employeeDTO.setId(mID);
-				return new ResponseEntity<GenericResponse>(
-						genericResponse.getResponse(employeeDTO, "Employee successfully Updated", HttpStatus.OK),
-						HttpStatus.OK);
-			} catch (IllegalArgumentException e) {
-				return new ResponseEntity<>(genericResponse.getResponse("", e.getMessage(), HttpStatus.BAD_REQUEST),
-						HttpStatus.BAD_REQUEST);
-			}
-		} else {
-			return new ResponseEntity<>(genericResponse.getResponse("", "Invalid Employee", HttpStatus.OK),
-					HttpStatus.OK);
-		}
+	        // If no conflict, update the employee data
+	        Employee updatedEmployee = new Employee();
+	        BeanUtils.copyProperties(employeeDTO, updatedEmployee);
+	        updatedEmployee.setId(id);
+	        updatedEmployee.setCreateTime(existingEmployee.getCreateTime());
+	        updatedEmployee.setUpdateTime(new Date());
+
+	        Long updatedEmployeeId = employeeService.save(updatedEmployee);
+	        employeeDTO.setId(updatedEmployeeId);
+	        return new ResponseEntity<GenericResponse>(
+	                genericResponse.getResponse(employeeDTO, "Employee successfully Updated", HttpStatus.OK),
+	                HttpStatus.OK);
+	    } else {
+	        // Employee not found, return a not found response
+	        return new ResponseEntity<>(genericResponse.getResponse("", "Invalid Employee", HttpStatus.NOT_FOUND),
+	                HttpStatus.NOT_FOUND);
+	    }
 	}
+
+	private boolean isDataConflicting(Employee existingEmployee, EmployeeDTO updatedEmployeeDTO) {
+	    // Check if email, name, employeeId, or contact already exist for other
+	    // employees but not for the current employee being updated
+	    return employeeRepository.existsByEmailAndIdNot(updatedEmployeeDTO.getEmail(), existingEmployee.getId())
+	            || employeeRepository.existsByNameAndIdNot(updatedEmployeeDTO.getName(), existingEmployee.getId())
+	            || employeeRepository.existsByEmployeeIdAndIdNot(updatedEmployeeDTO.getEmployeeId(), existingEmployee.getId())
+	            || employeeRepository.existsByContactAndIdNot(updatedEmployeeDTO.getContact(), existingEmployee.getId());
+	}
+
 
 	/*
 	 * ======================== Get All Employee ==================================
@@ -154,9 +179,9 @@ public class EmployeeController extends ApiController {
 //			page = employeeService.findAllByName(pageRequestDTO.getKeyword().trim(), pageable);
 //		}
 //		recordsCount = employeeService.getCount(pageRequestDTO.getKeyword().trim());
-
+		
 //		Object obj = (new PageResponseDTO()).getRespose(page.getContent(), recordsCount);
-
+		
 		Long recordsCount = 0l;
 
 		List<EmployeeListView> dataList = employeeService.findAll(pageRequestDTO);
@@ -168,7 +193,7 @@ public class EmployeeController extends ApiController {
 			e.printStackTrace();
 		}
 		Object obj = (new PageResponseDTO()).getRespose(dataList, recordsCount);
-
+		
 		return onSuccess(obj, Constants.EMPLOYEE_FETCHED);
 	}
 
@@ -184,23 +209,20 @@ public class EmployeeController extends ApiController {
 	@CrossOrigin
 	@GetMapping(value = EMPLOYEE_FIND_ONE, produces = "application/json")
 	public ResponseEntity<GenericResponse> findById(@PathVariable(name = "id") Long id) {
-	    logger.info("Request: In Employee Controller Find employee By Id :{} ", id);
+	    logger.info("Request: In Employee Controller Find employee By Id: {}", id);
 
 	    GenericResponse response = new GenericResponse();
 	    Employee employee = employeeService.findById(id);
-
+	    
 	    if (employee != null) {
-	        // Ensure that salary details are fetched along with allowances and deductions
-	        employee.getSalaryDetails().getSalaryAllowance().size();
-	        employee.getSalaryDetails().getSalaryDeduction().size();
+	        logger.info("Response: Employee found with ID: {}", id);
+	        return new ResponseEntity<>(response.getResponse(employee, "Employee Found", HttpStatus.OK), HttpStatus.OK);
+	    } else {
+	        logger.info("Response: No Employee found with ID: {}", id);
+	        return new ResponseEntity<>(response.getResponse(null, "No Employee found", HttpStatus.NOT_FOUND), HttpStatus.NOT_FOUND);
 	    }
-
-	    String msg = employee != null ? "Employee Found" : "No Employee found";
-	    logger.info("Response:details:of id     :{}  :{}  ", id, msg);
-
-	    return new ResponseEntity<>(response.getResponse(employee,
-	            employee != null ? "Employee Found" : "No Employee found", HttpStatus.OK), HttpStatus.OK);
 	}
+
 
 	/*
 	 * ======================== Delete Employee ========================

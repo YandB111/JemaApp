@@ -24,18 +24,23 @@ public interface ElutionCustomerRepository extends CrudRepository<ElutionCustome
 	@Transactional
 	@Modifying
 	@Query(value = "UPDATE ElutionCustomer SET status = :status  WHERE id IN :id ")
-	int updateStatus(@Param("id") String id, @Param("status") int status);
+	int updateStatus(@Param("id") List<String> idsArrays, @Param("status") int status);
 
 	@Transactional
 	@Modifying
 	@Query(value = "UPDATE elution_customer  SET deleted = '1'  WHERE id IN ?1 ", nativeQuery = true)
 	int delete(@Param("id") List<String> idsArrays);
-	
+
 	@Query(value = "SELECT * FROM elution_customer WHERE id=?1 and deleted != '1'", nativeQuery = true)
 	ElutionCustomer findCustomerById(@Param("id") String id);
-	
+
+	boolean existsByEmailIgnoreCase(String email);
+
+	boolean existsByEmailIgnoreCaseAndIdNot(String email, String id);
+
 	@Transactional
 	@Modifying
 	@Query(value = "UPDATE ElutionCustomer SET block = :block  WHERE id IN :id ")
-	int block(@Param("id") String id, @Param("block") int block);
+	int block(@Param("id") List<String> idsArrays, @Param("block") int block);
+
 }

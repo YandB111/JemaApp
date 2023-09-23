@@ -46,93 +46,78 @@ import io.swagger.annotations.ApiResponses;
 
 @Api(value = "Chemical Controller")
 @RestController
+
 public class ChemicalController extends ApiController {
 
 	protected Logger logger = LoggerFactory.getLogger(ChemicalController.class);
 
 	@Autowired
 	ChemicalService chemicalService;
-	
+
 	@Autowired
 	ChemicalRepository chemicalRepository;
 
 	/*
 	 * ======================== Chemical ADD ==================================
 	 */
+	
+	@CrossOrigin
+	@PostMapping(value = CHEMICAL_ADD, produces = "application/json")
+	public ResponseEntity<?> add(@Valid @RequestBody ChemicalDTO chemicalDTO) {
+		logger.info("Request: In Chemical Controller for Add Chemical: {}", chemicalDTO);
+		GenericResponse genericResponse = new GenericResponse();
 
-    @PostMapping(value = CHEMICAL_ADD, produces = "application/json")
-    public ResponseEntity<?> add(@Valid @RequestBody ChemicalDTO chemicalDTO) {
-        logger.info("Request: In Chemical Controller for Add Chemical: {}", chemicalDTO);
-        GenericResponse genericResponse = new GenericResponse();
+		Chemical chemical = new Chemical();
+		BeanUtils.copyProperties(chemicalDTO, chemical);
+		try {
+			chemical.setCreateTime(new Date());
+			chemical.setUpdateTime(new Date());
 
-        Chemical chemical = new Chemical();
-        BeanUtils.copyProperties(chemicalDTO, chemical);
-        chemical.setCreateTime(new Date());
-        chemical.setUpdateTime(new Date());
+			Long id = chemicalService.save(chemical);
+			chemicalDTO.setId(id);
 
-        try {
-            Long id = chemicalService.save(chemical);
-            chemicalDTO.setId(id);
-
-            return new ResponseEntity<GenericResponse>(
-                    genericResponse.getResponse(chemicalDTO, "Chemical successfully added", HttpStatus.OK),
-                    HttpStatus.OK);
-        } catch (ResponseStatusException e) {
-            ResponseErrorChemical errorResponse = new ResponseErrorChemical();
-            errorResponse.setStatus(HttpStatus.CONFLICT.value());
-            errorResponse.setError(HttpStatus.CONFLICT.getReasonPhrase());
-            errorResponse.setMessage(e.getReason());
-            errorResponse.setTimestamp(new Date());
-            return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
-        }
-    }
+			return new ResponseEntity<GenericResponse>(
+					genericResponse.getResponse(chemicalDTO, "Chemical successfully added", HttpStatus.OK),
+					HttpStatus.OK);
+		} catch (ResponseStatusException e) {
+			ResponseErrorChemical errorResponse = new ResponseErrorChemical();
+			errorResponse.setStatus(HttpStatus.CONFLICT.value());
+			errorResponse.setError(HttpStatus.CONFLICT.getReasonPhrase());
+			errorResponse.setMessage(e.getReason());
+			errorResponse.setTimestamp(new Date());
+			return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+		}
+	}
 
 	/*
 	 * ======================== Chemical Edit/Update ========================
 	 */
-    @PutMapping(value = CHEMICAL_UPDATE, produces = "application/json")
-    public ResponseEntity<?> update(@PathVariable(name = "id", required = true) Long id,
-                                     @Valid @RequestBody ChemicalDTO chemicalDTO) {
-        logger.info("Request: In Chemical Controller for Update Chemical: {}", chemicalDTO);
-        GenericResponse genericResponse = new GenericResponse();
+	
+	@CrossOrigin
+	@PutMapping(value = CHEMICAL_UPDATE, produces = "application/json")
+	public ResponseEntity<?> update(@PathVariable(name = "id", required = true) Long id,
+			@Valid @RequestBody ChemicalDTO chemicalDTO) {
+		logger.info("Request: In Chemical Controller for Update Chemical: {}", chemicalDTO);
 
-        Chemical existingChemical = chemicalService.findById(id);
+		try {
+			Chemical existingChemical = chemicalService.findById(id);
 
-        if (existingChemical != null) {
-            int appendCounter = 1;
-            boolean newCodeExists = chemicalRepository.existsByCodeIgnoreCaseAndIdNot(chemicalDTO.getCode(), existingChemical.getId());
+			if (existingChemical == null) {
+				return ResponseEntity.notFound().build();
+			}
 
-            while (newCodeExists) {
-                // Append "_<appendCounter>" to the new code
-                chemicalDTO.setCode(chemicalDTO.getCode() + "_" + appendCounter);
-                appendCounter++;
+			chemicalService.updateChemicalFields(existingChemical, chemicalDTO);
+			return ResponseEntity.ok().build();
+		} catch (ResponseStatusException ex) {
+			if (ex.getStatus() == HttpStatus.CONFLICT) {
+				return ResponseEntity.status(HttpStatus.CONFLICT)
+						.body(new GenericResponse().getResponse(null, ex.getReason(), HttpStatus.CONFLICT));
+			} else {
+				throw ex; // Re-throw if it's not a conflict status
+			}
+		}
+	}
 
-                newCodeExists = chemicalRepository.existsByCodeIgnoreCaseAndIdNot(chemicalDTO.getCode(), existingChemical.getId());
-            }
-
-            boolean newNameExists = chemicalRepository.existsByNameIgnoreCaseAndIdNot(chemicalDTO.getName(), existingChemical.getId());
-
-            while (newNameExists) {
-                // Append "_<appendCounter>" to the new name
-                chemicalDTO.setName(chemicalDTO.getName() + "_" + appendCounter);
-                appendCounter++;
-
-                newNameExists = chemicalRepository.existsByNameIgnoreCaseAndIdNot(chemicalDTO.getName(), existingChemical.getId());
-            }
-
-            chemicalService.updateChemicalFields(existingChemical, chemicalDTO);
-
-            Chemical updatedChemical = chemicalRepository.save(existingChemical);
-
-            return new ResponseEntity<GenericResponse>(
-                    genericResponse.getResponse(updatedChemical, "Chemical successfully updated", HttpStatus.OK),
-                    HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(
-                    genericResponse.getResponse("", "Chemical not found with ID: " + id, HttpStatus.NOT_FOUND),
-                    HttpStatus.NOT_FOUND);
-        }
-    }
 	/*
 	 * ======================== Get All Chemicals ==================================
 	 */
@@ -185,6 +170,7 @@ public class ChemicalController extends ApiController {
 				chemical != null ? "Chemical Found" : "No Chemical found", HttpStatus.OK), HttpStatus.OK);
 	}
 
+	
 	/*
 	 * ======================== Update Chemical Status========================
 	 */

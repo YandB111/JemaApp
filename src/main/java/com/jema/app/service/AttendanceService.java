@@ -28,6 +28,8 @@ public interface AttendanceService {
 	
 	public Long getCount(String name);
 
+
 	Attendance updateLeaveStatus(Long id, int leaveStatus);
+
 
 }

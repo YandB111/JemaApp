@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.jema.app.dto.CustomerSettingTaxDTO;
 import com.jema.app.dto.CustomerSettingTaxListView;
@@ -68,15 +69,19 @@ public class CustomerSettingTaxController extends ApiController {
 		BeanUtils.copyProperties(mCustomerSettingTaxDTO, customerSettingTax);
 		customerSettingTax.setCreateTime(new Date());
 		customerSettingTax.setUpdateTime(new Date());
-		Long id = customerSettingTaxService.save(customerSettingTax);
-		mCustomerSettingTaxDTO.setId(id);
+		try {
+			Long id = customerSettingTaxService.save(customerSettingTax);
+			mCustomerSettingTaxDTO.setId(id);
 
-		return new ResponseEntity<GenericResponse>(
-				genericResponse.getResponse(mCustomerSettingTaxDTO, "Successfully added", HttpStatus.OK),
-				HttpStatus.OK);
-
+			return new ResponseEntity<GenericResponse>(
+					genericResponse.getResponse(mCustomerSettingTaxDTO, "Successfully added", HttpStatus.OK),
+					HttpStatus.OK);
+		} catch (ResponseStatusException ex) {
+			// Handle the conflict (HTTP 409) case
+			return new ResponseEntity<GenericResponse>(
+					genericResponse.getResponse(null, ex.getReason(), HttpStatus.CONFLICT), HttpStatus.CONFLICT);
+		}
 	}
-
 	/*
 	 * ======================== Delete Tax ========================
 	 */
@@ -165,7 +170,7 @@ public class CustomerSettingTaxController extends ApiController {
 			e.printStackTrace();
 		}
 		Object obj = (new PageResponseDTO()).getRespose(dataList, recordsCount);
-		
+
 		return onSuccess(obj, Constants.TAX_FETCHED);
 	}
 

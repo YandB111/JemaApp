@@ -11,13 +11,9 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 
-import com.jema.app.dto.ChemicalDTO;
-import com.jema.app.dto.DepartmentDTO;
 import com.jema.app.dto.DepartmentView;
 import com.jema.app.dto.PageRequestDTO;
-import com.jema.app.entities.Chemical;
 import com.jema.app.entities.Department;
 
 public interface DepartmentService {
@@ -27,6 +23,7 @@ public interface DepartmentService {
 	public Page<Department> findAllByName(String name, Pageable pageable);
 
 	public Page<Department> findAll(Pageable pageable);
+
 
 	public List<DepartmentView> findAll(PageRequestDTO pageRequestDTO);
 
@@ -38,8 +35,9 @@ public interface DepartmentService {
 
 	public Long getCount(String name);
 
+	Long updateDepartment(Department department);
 
-	ResponseEntity<?> updateDepartment(Long id, DepartmentDTO departmentDTO);
+	public boolean isNameOrCodeExists(String name, String code, Long id);
 
-	void updateDepartmenFields(Department department, DepartmentDTO departmentDTO);
+
 }

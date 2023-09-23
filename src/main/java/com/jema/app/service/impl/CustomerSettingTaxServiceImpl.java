@@ -15,12 +15,15 @@ import javax.persistence.Query;
 import javax.persistence.Tuple;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.google.gson.Gson;
 import com.jema.app.dto.CustomerSettingTaxListView;
 import com.jema.app.dto.PageRequestDTO;
 import com.jema.app.entities.CustomerSettingTax;
+import com.jema.app.entities.InventorySettingTax;
 import com.jema.app.repositories.CustomerSettingTaxRepository;
 import com.jema.app.service.CustomerSettingTaxService;
 import com.jema.app.utils.AppUtils;
@@ -39,9 +42,17 @@ public class CustomerSettingTaxServiceImpl implements CustomerSettingTaxService 
 
 	@Override
 	public Long save(CustomerSettingTax mCustomerSettingTax) {
-		// TODO Auto-generated method stub
-		return mCustomerSettingTaxRepository.save(mCustomerSettingTax).getId();
-	}
+		 String CustomertaxName = mCustomerSettingTax.getName();
+		 CustomerSettingTax existingTax = mCustomerSettingTaxRepository.findByNameIgnoreCase(CustomertaxName);
+
+		    if (existingTax != null) {
+		        // Tax with the same name (ignoring case) already exists, throw a conflict exception
+		        throw new ResponseStatusException(HttpStatus.CONFLICT, "Tax with the same name already exists");
+		    }
+
+		    // No conflict, save the new tax
+		    return mCustomerSettingTaxRepository.save(mCustomerSettingTax).getId();
+		}
 
 	@Override
 	public List<CustomerSettingTaxListView> findAll(PageRequestDTO pageRequestDTO) {

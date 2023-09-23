@@ -25,4 +25,7 @@ public interface TaxRepository extends JpaRepository<Tax, Long> {
 	@Modifying
 	@Query(value = "UPDATE Tax  SET status=?1  WHERE id IN ?2 ", nativeQuery = true)
 	int updateStatus(@Param("status") int status, @Param("id") List<Long> idsArrays);
+
+	boolean existsByNameIgnoreCase(String name);
+
 }

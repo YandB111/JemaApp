@@ -21,5 +21,9 @@ public interface TypeService {
 
 	public int delete(List<Long> idsArrays);
 
+	public Type findByName(String newTypeName);
+
+	public Type findByNameIgnoreCase(String typeName);
+
 
 }

@@ -7,6 +7,7 @@
 
 package com.jema.app.service.impl;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -20,10 +21,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.gson.Gson;
+import com.jema.app.dto.InventoryRequestDTO;
 import com.jema.app.dto.InventoryRequestListView;
 import com.jema.app.dto.PageRequestDTO;
 import com.jema.app.entities.InventoryRequest;
+import com.jema.app.entities.Vendor;
 import com.jema.app.repositories.InventoryRequestRepository;
+import com.jema.app.repositories.VendorRepository;
 import com.jema.app.service.InventoryRequestService;
 import com.jema.app.utils.AppUtils;
 
@@ -37,14 +41,21 @@ public class InventoryRequestServiceImpl implements InventoryRequestService {
 	private Gson gson;
 
 	@Autowired
+	VendorRepository vendorRepository;
+
+	@Autowired
 	InventoryRequestRepository inventoryRequestRepository;
 
 	@Transactional
 	@Override
 	public String save(InventoryRequest inventoryRequest) {
 		// TODO Auto-generated method stub
+	
 		return inventoryRequestRepository.save(inventoryRequest).getId();
 	}
+	
+	
+	//remove status comment
 
 	@Override
 	public List<InventoryRequestListView> findAll(PageRequestDTO pageRequestDTO) {
@@ -176,6 +187,10 @@ public class InventoryRequestServiceImpl implements InventoryRequestService {
 		// TODO Auto-generated method stub
 		return inventoryRequestRepository.updateInvoice(id, invoiceDate, invoiceURL, invoiceNumber);
 	}
-	
+
+	@Override
+	public List<InventoryRequest> findAllInventoryRequests() {
+		return (List<InventoryRequest>) inventoryRequestRepository.findAll();
+	}
 
 }

@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.jema.app.dto.InventorySettingStatusDTO;
 import com.jema.app.dto.InventorySettingStatusListView;
@@ -69,6 +70,8 @@ public class InventorySettingStatusController extends ApiController {
 		BeanUtils.copyProperties(inventorySettingStatusDTO, inventorySettingStatus);
 		inventorySettingStatus.setCreateTime(new Date());
 		inventorySettingStatus.setUpdateTime(new Date());
+		
+		try {
 		Long id = inventorySettingStatusService.save(inventorySettingStatus);
 		inventorySettingStatusDTO.setId(id);
 
@@ -76,8 +79,13 @@ public class InventorySettingStatusController extends ApiController {
 				genericResponse.getResponse(inventorySettingStatusDTO, "Successfully added", HttpStatus.OK),
 				HttpStatus.OK);
 
+		 } catch (ResponseStatusException ex) {
+		        // Handle the conflict (HTTP 409) case
+		        return new ResponseEntity<GenericResponse>(
+		                genericResponse.getResponse(null, ex.getReason(), HttpStatus.CONFLICT),
+		                HttpStatus.CONFLICT);
+		    }
 	}
-	
 	
 	/*
 	 * ======================== Get All Status =================

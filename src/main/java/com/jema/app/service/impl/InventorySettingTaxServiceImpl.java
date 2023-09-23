@@ -15,7 +15,9 @@ import javax.persistence.Query;
 import javax.persistence.Tuple;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.google.gson.Gson;
 import com.jema.app.dto.DepartmentView;
@@ -40,8 +42,17 @@ public class InventorySettingTaxServiceImpl implements InventorySettingTaxServic
 	
 	@Override
 	public Long save(InventorySettingTax inventorySettingTax) {
-		// TODO Auto-generated method stub
-		return inventorySettingTaxRepository.save(inventorySettingTax).getId();
+	    // Check if a tax with the same name already exists (ignoring case)
+	    String taxName = inventorySettingTax.getName();
+	    InventorySettingTax existingTax = inventorySettingTaxRepository.findByNameIgnoreCase(taxName);
+
+	    if (existingTax != null) {
+	        // Tax with the same name (ignoring case) already exists, throw a conflict exception
+	        throw new ResponseStatusException(HttpStatus.CONFLICT, "Tax with the same name already exists");
+	    }
+
+	    // No conflict, save the new tax
+	    return inventorySettingTaxRepository.save(inventorySettingTax).getId();
 	}
 
 	@Override

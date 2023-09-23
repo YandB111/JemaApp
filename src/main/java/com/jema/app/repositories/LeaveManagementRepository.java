@@ -7,6 +7,7 @@
 
 package com.jema.app.repositories;
 
+
 import java.util.Date;
 import java.util.List;
 
@@ -20,6 +21,8 @@ public interface LeaveManagementRepository extends JpaRepository<LeaveManagement
 
 	List<LeaveManagement> findByEmployeeId(Long id);
 
+
 	 boolean existsByEmployeeIdAndDateAndLeaveType(Long employeeId, Date date, int leaveType);
 	    
+
 }

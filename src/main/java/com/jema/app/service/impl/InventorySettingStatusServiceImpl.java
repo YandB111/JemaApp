@@ -15,12 +15,15 @@ import javax.persistence.Query;
 import javax.persistence.Tuple;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.google.gson.Gson;
 import com.jema.app.dto.InventorySettingStatusListView;
 import com.jema.app.dto.PageRequestDTO;
 import com.jema.app.entities.InventorySettingStatus;
+import com.jema.app.entities.InventorySettingTax;
 import com.jema.app.repositories.InventorySettingStatusRepository;
 import com.jema.app.service.InventorySettingStatusService;
 import com.jema.app.utils.AppUtils;
@@ -39,9 +42,17 @@ public class InventorySettingStatusServiceImpl implements InventorySettingStatus
 	
 	@Override
 	public Long save(InventorySettingStatus inventorySettingStatus) {
-		// TODO Auto-generated method stub
-		return inventorySettingStatusRepository.save(inventorySettingStatus).getId();
-	}
+		   String StatusName = inventorySettingStatus.getName();
+		   InventorySettingStatus existingStatus = inventorySettingStatusRepository.findByNameIgnoreCase(StatusName);
+
+		    if (existingStatus != null) {
+		        // Tax with the same name (ignoring case) already exists, throw a conflict exception
+		        throw new ResponseStatusException(HttpStatus.CONFLICT, "Status with the same name already exists");
+		    }
+
+		    // No conflict, save the new tax
+		    return inventorySettingStatusRepository.save(inventorySettingStatus).getId();
+		}
 
 	@Override
 	public List<InventorySettingStatusListView> findAll(PageRequestDTO pageRequestDTO) {

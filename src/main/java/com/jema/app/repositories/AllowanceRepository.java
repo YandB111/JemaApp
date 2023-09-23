@@ -26,4 +26,8 @@ public interface AllowanceRepository extends JpaRepository<Allowance, Long> {
 	@Query(value = "UPDATE Allowance  SET status=?1  WHERE id IN ?2 ", nativeQuery = true)
 	int updateStatus(@Param("status") int status, @Param("id") List<Long> idsArrays);
 
+
+	boolean existsByNameIgnoreCase(String statusName);
+
+
 }

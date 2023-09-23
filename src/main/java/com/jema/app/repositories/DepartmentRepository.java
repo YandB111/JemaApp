@@ -23,7 +23,9 @@ public interface DepartmentRepository extends CrudRepository<Department, Long> {
 
 	Page<Department> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
+
 	Page<Department> findAll(Pageable pageable);
+
 
 	@Transactional
 	@Modifying
@@ -33,6 +35,7 @@ public interface DepartmentRepository extends CrudRepository<Department, Long> {
 	@Query(value = "select count(*) from Department d where d.name ILIKE (?1%)", nativeQuery = true)
 	Long getCount(@Param("name") String name);
 
+
 	boolean existsByCodeIgnoreCaseAndIdNot(String code, Long id);
 
 	boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);
@@ -41,5 +44,9 @@ public interface DepartmentRepository extends CrudRepository<Department, Long> {
 	boolean existsByCodeIgnoreCase(String code);
 
     boolean existsByNameIgnoreCase(String name);
+
+	boolean existsByNameOrCode(String name, String code);
+
+	boolean existsByNameOrCodeAndIdNot(String name, String code, Long id);
 
 }

@@ -20,7 +20,9 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+
 import javax.persistence.UniqueConstraint;
+
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -31,18 +33,23 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
+
+@Table(name = "department")
+
 @Entity
 @Data
 @Getter
 @Setter
 @JsonIgnoreProperties(value = { "createTime", "updateTime" }, allowGetters = true)
-@Table(name = "department")
+
+
 public class Department {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
 	private Long id;
+
 
 	@Column(name = "name", unique = true)
 	String name;
@@ -55,7 +62,6 @@ public class Department {
 
 	@Column(name = "branch")
 	private Long branch;
-
 	@Column(name = "status")
 	Integer status;
 
@@ -68,6 +74,5 @@ public class Department {
 	@Temporal(TemporalType.TIMESTAMP)
 	@LastModifiedDate
 	private Date updateTime;
-
 
 }

@@ -17,7 +17,6 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.persistence.UniqueConstraint;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -34,6 +33,7 @@ import lombok.Setter;
 @JsonIgnoreProperties(value = { "createTime", "updateTime" }, allowGetters = true)
 @Entity
 @Table(name = "chemical")
+
 public class Chemical {
 
 	@Id
@@ -44,10 +44,12 @@ public class Chemical {
 	@Column(name = "image")
 	String image;
 
+
 	@Column(name = "name", unique = true)
 	String name;
 
 	@Column(name = "code", unique = true)
+
 	String code;
 
 	@Column(name = "description")
@@ -84,6 +86,5 @@ public class Chemical {
 	@Temporal(TemporalType.TIMESTAMP)
 	@LastModifiedDate
 	private Date updateTime;
-
 
 }

@@ -15,4 +15,8 @@ import com.jema.app.entities.Type;
 @Repository
 public interface TypeRepository extends JpaRepository<Type, Long> {
 
+	Type findByNameIgnoreCase(String typeName);
+
+	Type findByName(String newTypeName);
+
 }

@@ -23,5 +23,9 @@ public interface LeaveTypeService {
 
 	public int delete(List<Long> idsArrays);
 
+
+	boolean existsByNameIgnoreCase(String leaveTypeName);
+
 	
+
 }

@@ -36,7 +36,10 @@ public class SalaryDeduction {
 	@Column(name = "taxlabel")
 	String taxLabel;
 
+
 	@Column(name = "taxvalue", columnDefinition = "DECIMAL(10, 2)")
 	double taxValue;
+	
+	
 
 }

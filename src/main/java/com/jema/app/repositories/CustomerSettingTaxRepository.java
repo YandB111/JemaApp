@@ -25,4 +25,6 @@ public interface CustomerSettingTaxRepository extends JpaRepository<CustomerSett
 	@Modifying
 	@Query(value = "UPDATE customer_setting_tax  SET status=?1  WHERE id IN ?2 ", nativeQuery = true)
 	int updateStatus(@Param("status") int status, @Param("id") List<Long> idsArrays);
+
+	CustomerSettingTax findByNameIgnoreCase(String customertaxName);
 }

@@ -60,6 +60,7 @@ public class LeaveTypeController extends ApiController {
 	@CrossOrigin
 	@PostMapping(value = LEAVE_TYPE_ADD, produces = "application/json")
 	public ResponseEntity<?> add(@Valid @RequestBody LeaveTypeDTO leaveTypeDTO) {
+
 	    logger.info("Request:In Leave Type Controller for Add Leave Type :{} ", leaveTypeDTO);
 	    GenericResponse genericResponse = new GenericResponse();
 
@@ -82,6 +83,7 @@ public class LeaveTypeController extends ApiController {
 	        genericResponse.getResponse(leaveTypeDTO, "Successfully added", HttpStatus.OK), HttpStatus.OK
 	    );
 	}
+
 
 
 	/*

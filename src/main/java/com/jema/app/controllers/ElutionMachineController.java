@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -29,10 +30,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.jema.app.dto.ElutionCustomerDTO;
 import com.jema.app.dto.ElutionMachineDTO;
 import com.jema.app.dto.ElutionMachineListView;
+import com.jema.app.dto.ElutionMachineRawDTO;
 import com.jema.app.dto.PageRequestDTO;
 import com.jema.app.dto.PageResponseDTO;
 import com.jema.app.entities.ElutionCustomer;
 import com.jema.app.entities.ElutionMachine;
+import com.jema.app.entities.ElutionMachineRaw;
 import com.jema.app.response.GenericResponse;
 import com.jema.app.service.ElutionMachineService;
 import com.jema.app.utils.Constants;
@@ -78,6 +81,29 @@ public class ElutionMachineController extends ApiController {
 
 	}
 	
+
+	/*
+	 * ======================== Find One Machine ========================
+	 */
+
+	@ApiOperation(value = "Find Machine By Id", response = Iterable.class)
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully retrieved Data"),
+			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@CrossOrigin
+	@GetMapping(value = ELUTION_MACHINE_FIND_ONE, produces = "application/json")
+	public ResponseEntity<GenericResponse> findById(@PathVariable(name = "id") String id) {
+		logger.info("Request: In Elution Machine Controller Find Machine By Id :{} ", id);
+
+		GenericResponse response = new GenericResponse();
+		ElutionMachine mElutionMachine = mElutionMachineService.findById(id);
+		String msg = mElutionMachine != null ? "Machine Found" : "No Machine found";
+		logger.info("Response:details:of id     :{}  :{}  ", id, msg);
+		return new ResponseEntity<>(response.getResponse(mElutionMachine,
+				mElutionMachine != null ? "Machine Found" : "No Machine found", HttpStatus.OK), HttpStatus.OK);
+	}
+
 	
 	/*
 	 * ======================== Machine Edit/Update ========================

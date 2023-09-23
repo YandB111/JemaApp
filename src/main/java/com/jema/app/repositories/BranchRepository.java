@@ -33,10 +33,20 @@ public interface BranchRepository extends CrudRepository<Branch, Long> {
 	@Query(value = "select count(*) from Branch b where b.name ILIKE (?1%)", nativeQuery = true)
 	Long getCount(@Param("name") String name);
 
+
 	boolean existsByName(String name);
 
 	boolean existsByEmail(String email);
 
-	
 	boolean existsByEmailIgnoreCaseOrNameIgnoreCase(String email, String name);
+
+	boolean existsByEmailIgnoreCaseAndIdNot(String newEmail, Long id);
+
+	boolean existsByNameIgnoreCaseAndIdNot(String newName, Long id);
+
+	boolean existsByNameIgnoreCase(String name);
+
+	boolean existsByEmailIgnoreCase(String email);
+
+
 }

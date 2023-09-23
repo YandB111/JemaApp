@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.jema.app.dto.AllowanceDTO;
 import com.jema.app.entities.Allowance;
@@ -62,12 +63,20 @@ public class AllowanceController extends ApiController {
 		BeanUtils.copyProperties(allowanceDTO, allowance);
 		allowance.setCreateTime(new Date());
 		allowance.setUpdateTime(new Date());
+		try {
 		Long id = allowanceService.save(allowance);
 		allowanceDTO.setId(id);
 
 		return new ResponseEntity<GenericResponse>(
 				genericResponse.getResponse(allowanceDTO, "Successfully added", HttpStatus.OK), HttpStatus.OK);
-
+		} catch (ResponseStatusException ex) {
+			if (ex.getStatus() == HttpStatus.CONFLICT) {
+				return new ResponseEntity<GenericResponse>(
+						genericResponse.getResponse(null, ex.getReason(), HttpStatus.CONFLICT), HttpStatus.CONFLICT);
+			} else {
+				throw ex;
+			}
+		}
 	}
 
 	/*

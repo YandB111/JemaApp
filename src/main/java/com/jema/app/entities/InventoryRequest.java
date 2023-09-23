@@ -47,69 +47,72 @@ public class InventoryRequest {
 	@Expose
 	@Column(name = "id")
 	private String id;
-	
+
 	@Column(name = "chemical_id")
 	private Long chemicalId;
-	
+
 	@Column(name = "vendor_id")
 	private Long vendorId;
-	
+
 	@Column(name = "billing_address")
 	private String billingAddress;
-	
+
 	@Column(name = "shiping_address")
 	private String shipingAddress;
-	
+
 	@Column(name = "price")
 	Double price;
 
 	@Column(name = "quantity")
 	Long quantity;
-	
+
 	@Column(name = "requiredDate")
 	@Temporal(TemporalType.TIMESTAMP)
 	Date requiredDate;
-	
+
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
 	@JoinColumn(name = "inventory_request_item")
 	private List<InventoryRequestItemTax> tax;
-	
+
 	@Column(name = "total_tax")
 	Double totalTax;
-	
+
 	@Column(name = "total_price")
 	Double totalPrice;
-	
+
 	@Column(name = "status")
 	int status;
-	
+
 	@Column(name = "mark_off")
 	int markOff;
-	
+
 	@Column(name = "mark_off_date")
 	Date markOffDate;
-	
+
 	@Column(name = "comment")
 	String comment;
 	
+	@Column(name = "status_comment")
+	String statusComment;
+
 	@Column(name = "cancel")
 	int cancel;
-	
+
 	@Column(name = "returned")
 	int returned;
-	
+
 	@Column(name = "payment_mode")
 	String paymentMode;
-	
+
 	@Column(name = "invoice_number")
 	String invoiceNumber;
-	
+
 	@Column(name = "invoice_url")
 	String invoiceURL;
-	
+
 	@Column(name = "invoice_date")
 	Date invoiceDate;
-	
+
 	@Column(name = "createTime", nullable = false, updatable = false)
 	@Temporal(TemporalType.TIMESTAMP)
 	@CreatedDate
@@ -120,5 +123,10 @@ public class InventoryRequest {
 	@LastModifiedDate
 	private Date updateTime;
 
+	@Column(name = "typeOfPayment")
+	private String typeOfPayment;
+
+	@Column(name = "verification", columnDefinition = "VARCHAR(255) DEFAULT '0'")
+	private String verification = "0";
 
 }

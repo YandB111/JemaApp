@@ -15,6 +15,7 @@ import lombok.Data;
 public class CustomerOrderDTO {
 
 	private String id;
-	
+	private String customerName;
+    private String verification = "0";
 	private List<CustomerOrderItemDTO> item;
 }

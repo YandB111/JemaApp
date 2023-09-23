@@ -7,16 +7,23 @@
 
 package com.jema.app.service.impl;
 
+
 import java.util.List;
 import java.util.Optional;
-
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.Tuple;
+import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Repository;
+import org.springframework.data.repository.PagingAndSortingRepository;
+
+
+import javax.persistence.EntityManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -26,6 +33,7 @@ import com.google.gson.Gson;
 import com.jema.app.dto.EmployeeListView;
 import com.jema.app.dto.PageRequestDTO;
 import com.jema.app.entities.Employee;
+import com.jema.app.entities.SalaryDetails;
 import com.jema.app.repositories.EmployeeRepository;
 import com.jema.app.service.EmployeeService;
 import com.jema.app.utils.AppUtils;
@@ -44,23 +52,25 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 	@Override
 	public Long save(Employee employee) {
-		
-		  if (isEmployeeDataValid(employee)) {
-	            Employee savedEmployee = employeeRepository.save(employee);
-	            return savedEmployee.getId();
-	        } else {
-	            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Employee data already exists");
-	        }
-	    }
 
-	    private boolean isEmployeeDataValid(Employee newEmployee) {
-	        // Check if email, name, employee ID, or contact already exist
-	        return !employeeRepository.existsByEmail(newEmployee.getEmail())
-	                && !employeeRepository.existsByName(newEmployee.getName())
-	                && !employeeRepository.existsByEmployeeId(newEmployee.getEmployeeId())
-	                && !employeeRepository.existsByContact(newEmployee.getContact());
-	    }
 
+		if (isEmployeeDataValid(employee)) {
+			Employee savedEmployee = employeeRepository.save(employee);
+			return savedEmployee.getId();
+		} else {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Employee data already exists");
+		}
+	}
+
+	private boolean isEmployeeDataValid(Employee newEmployee) {
+		// Check if email, name, employee ID, or contact already exist for other
+		// employees
+		return !employeeRepository.existsByEmailAndIdNot(newEmployee.getEmail(), newEmployee.getId())
+				&& !employeeRepository.existsByNameAndIdNot(newEmployee.getName(), newEmployee.getId())
+				&& !employeeRepository.existsByEmployeeIdAndIdNot(newEmployee.getEmployeeId(), newEmployee.getId())
+				&& !employeeRepository.existsByContactAndIdNot(newEmployee.getContact(), newEmployee.getId());
+
+	}
 
 	@Override
 	public Page<Employee> findAllByName(String name, Pageable pageable) {
@@ -119,15 +129,19 @@ public class EmployeeServiceImpl implements EmployeeService {
 		// TODO Auto-generated method stub
 		String baseBuery = "select count(*) over() as total, e.name as name, e.id as id, e.status as status, "
 				+ "e.employeeid as employee_id, e.designation as designation, e.email as email, e.contact as contact, "
+
 				+ "d.name as department, b.name as branch, i.url as image " + "from employee e "
 				+ "left join images i on e.id = i.employee " + "left join branch b on e.branch = b.id "
+
 				+ "left join department d on e.department = d.id";
 		if (pageRequestDTO.getKeyword() != null && !pageRequestDTO.getKeyword().trim().isEmpty()) {
 			baseBuery = baseBuery + " where e.name ilike '%" + pageRequestDTO.getKeyword().trim() + "%'";
 		}
 
+
 		baseBuery = baseBuery
 				+ " group by e.name, e.id, e.status, e.designation, e.employeeid, e.email, e.contact, d.name, b.name, i.url order by e.id DESC";
+
 		// create a query to retrieve MyEntity objects
 		Query query = null;
 		try {
@@ -159,80 +173,17 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 
-    @Override
-    public Long update(Employee employee) {
-        if (existsWithDuplicateAttributes(employee)) {
-            String newEmployeeId = generateUniqueEmployeeId(employee.getEmployeeId());
-            String newName = generateUniqueName(employee.getName());
-            String newEmail = generateUniqueEmail(employee.getEmail());
-            String newContact = generateUniqueContact(employee.getContact());
+	@Override
+	public List<Employee> findAllEmployees() {
+		return (List<Employee>) employeeRepository.findAll();
+	}
 
-            employee.setEmployeeId(newEmployeeId);
-            employee.setName(newName);
-            employee.setEmail(newEmail);
-            employee.setContact(newContact);
-        }
-
-        Employee updatedEmployee = employeeRepository.save(employee);
-        return updatedEmployee.getId();
-    }
-
-    // Other methods...
-
-    private boolean existsWithDuplicateAttributes(Employee employee) {
-        return employeeRepository.existsByEmail(employee.getEmail())
-                || employeeRepository.existsByName(employee.getName())
-                || employeeRepository.existsByEmployeeId(employee.getEmployeeId())
-                || employeeRepository.existsByContact(employee.getContact());
-    }
-
-    private String generateUniqueEmployeeId(String employeeId) {
-        int appendCounter = 1;
-        String originalEmployeeId = employeeId;
-
-        while (employeeRepository.existsByEmployeeId(employeeId)) {
-            employeeId = originalEmployeeId + "_" + appendCounter;
-            appendCounter++;
-        }
-
-        return employeeId;
-    }
-
-    private String generateUniqueName(String name) {
-        int appendCounter = 1;
-        String originalName = name;
-
-        while (employeeRepository.existsByName(name)) {
-            name = originalName + "_" + appendCounter;
-            appendCounter++;
-        }
-
-        return name;
-    }
-
-    private String generateUniqueEmail(String email) {
-        int appendCounter = 1;
-        String originalEmail = email;
-
-        while (employeeRepository.existsByEmail(email)) {
-            email = originalEmail + "_" + appendCounter;
-            appendCounter++;
-        }
-
-        return email;
-    }
-
-    private String generateUniqueContact(String contact) {
-        int appendCounter = 1;
-        String originalContact = contact;
-
-        while (employeeRepository.existsByContact(contact)) {
-            contact = originalContact + "_" + appendCounter;
-            appendCounter++;
-        }
-
-        return contact;
-    }
+	@Override
+	public Double calculateTotalSalarySum() {
+		// TODO Auto-generated method stub
+		return employeeRepository.calculateTotalSalarySum();
+	}
 
 	
+
 }

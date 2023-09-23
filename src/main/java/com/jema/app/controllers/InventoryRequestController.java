@@ -486,4 +486,7 @@ public class InventoryRequestController extends ApiController {
 		return onSuccess(obj, Constants.INVENTORY_FETCHED);
 	}
 
+
+
+
 }

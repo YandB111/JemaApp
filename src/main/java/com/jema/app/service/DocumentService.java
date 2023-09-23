@@ -23,4 +23,8 @@ public interface DocumentService {
 	public int delete(List<Long> idsArrays);
 	
 	public int updateStatus(int status, List<Long> idsArrays);
+
+
+	public Long updateDocument(Document documentToUpdate);
+
 }

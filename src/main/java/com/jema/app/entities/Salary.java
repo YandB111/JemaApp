@@ -7,6 +7,7 @@
 
 package com.jema.app.entities;
 
+
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -45,10 +46,12 @@ public class Salary {
 	private Long empId;
 	
 	@Column(name = "gross")
-	private double gross;
+
+	private BigDecimal gross;
 
 	@Column(name = "deduction")
-	private double deduction;
+	private BigDecimal deduction;
+
 
 	@Column(name = "date")
 	@Temporal(TemporalType.TIMESTAMP)

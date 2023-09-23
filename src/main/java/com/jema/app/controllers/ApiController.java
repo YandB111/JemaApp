@@ -137,11 +137,13 @@ public abstract class ApiController {
 
 	public static final String ELUTION_CUSTOMER_SETTING_STATUS = API_PATH + "/elution/customerSetting/status";
 	public static final String ELUTION_CUSTOMER_SETTING_STATUS_ADD = ELUTION_CUSTOMER_SETTING_STATUS + "/add";
-	public static final String ELUTION_CUSTOMER_SETTING_STATUS_FIND_ONE = ELUTION_CUSTOMER_SETTING_STATUS + "/findById/{id}";
+	public static final String ELUTION_CUSTOMER_SETTING_STATUS_FIND_ONE = ELUTION_CUSTOMER_SETTING_STATUS
+			+ "/findById/{id}";
 	public static final String ELUTION_CUSTOMER_SETTING_STATUS_UPDATE = ELUTION_CUSTOMER_SETTING_STATUS + "/{id}";
 	public static final String ELUTION_CUSTOMER_SETTING_STATUS_FIND_ALL = ELUTION_CUSTOMER_SETTING_STATUS + "/findAll";
 	public static final String ELUTION_CUSTOMER_SETTING_STATUS_DELETE = ELUTION_CUSTOMER_SETTING_STATUS + "/delete";
-	public static final String ELUTION_CUSTOMER_SETTING_STATUS_STATUS = ELUTION_CUSTOMER_SETTING_STATUS + "/status/{status}";
+	public static final String ELUTION_CUSTOMER_SETTING_STATUS_STATUS = ELUTION_CUSTOMER_SETTING_STATUS
+			+ "/status/{status}";
 
 	public static final String ELUTION_MACHINE_SETTING_RAW = API_PATH + "/elution/machineSetting/raw";
 	public static final String ELUTION_MACHINE_SETTING_RAW_ADD = ELUTION_MACHINE_SETTING_RAW + "/add";
@@ -154,25 +156,31 @@ public abstract class ApiController {
 	public static final String ELUTION_MACHINE_SERVICE = API_PATH + "/elution/machineService";
 	public static final String ELUTION_MACHINE_SERVICE_ADD = ELUTION_MACHINE_SERVICE + "/add";
 	public static final String ELUTION_MACHINE_SERVICE_FIND_ALL = ELUTION_MACHINE_SERVICE + "/findAll";
-	
+	public static final String ELUTION_MACHINE_UPDATE_LAST_DATES = ELUTION_MACHINE_SERVICE + "/extend/{id}";
+
 	public static final String ELUTION_MACHINE_WORKING_STATUS = API_PATH + "/elution/machineWorkingStatus";
 	public static final String ELUTION_MACHINE_WORKING_STATUS_ADD = ELUTION_MACHINE_WORKING_STATUS + "/add";
 	public static final String ELUTION_MACHINE_WORKING_STATUS_FIND_ALL = ELUTION_MACHINE_WORKING_STATUS + "/findAll";
-	
+
 	public static final String ELUTION_CUSTOMER_SETTING_LEAD_STATUS = API_PATH + "/elution/customerSetting/leadStatus";
 	public static final String ELUTION_CUSTOMER_SETTING_LEAD_STATUS_ADD = ELUTION_CUSTOMER_SETTING_LEAD_STATUS + "/add";
-	public static final String ELUTION_CUSTOMER_SETTING_LEAD_STATUS_FIND_ONE = ELUTION_CUSTOMER_SETTING_LEAD_STATUS + "/findById/{id}";
-	public static final String ELUTION_CUSTOMER_SETTING_LEAD_STATUS_UPDATE = ELUTION_CUSTOMER_SETTING_LEAD_STATUS + "/{id}";
-	public static final String ELUTION_CUSTOMER_SETTING_LEAD_STATUS_FIND_ALL = ELUTION_CUSTOMER_SETTING_LEAD_STATUS + "/findAll";
-	public static final String ELUTION_CUSTOMER_SETTING_LEAD_STATUS_DELETE = ELUTION_CUSTOMER_SETTING_LEAD_STATUS + "/delete";
-	public static final String ELUTION_CUSTOMER_SETTING_LEAD_STATUS_STATUS = ELUTION_CUSTOMER_SETTING_LEAD_STATUS + "/status/{status}";
+	public static final String ELUTION_CUSTOMER_SETTING_LEAD_STATUS_FIND_ONE = ELUTION_CUSTOMER_SETTING_LEAD_STATUS
+			+ "/findById/{id}";
+	public static final String ELUTION_CUSTOMER_SETTING_LEAD_STATUS_UPDATE = ELUTION_CUSTOMER_SETTING_LEAD_STATUS
+			+ "/{id}";
+	public static final String ELUTION_CUSTOMER_SETTING_LEAD_STATUS_FIND_ALL = ELUTION_CUSTOMER_SETTING_LEAD_STATUS
+			+ "/findAll";
+	public static final String ELUTION_CUSTOMER_SETTING_LEAD_STATUS_DELETE = ELUTION_CUSTOMER_SETTING_LEAD_STATUS
+			+ "/delete";
+	public static final String ELUTION_CUSTOMER_SETTING_LEAD_STATUS_STATUS = ELUTION_CUSTOMER_SETTING_LEAD_STATUS
+			+ "/status/{status}";
 
 	public static final String ATTENDANCE = API_PATH + "/attendance";
 	public static final String ATTENDANCE_ADD = ATTENDANCE + "/add";
 	public static final String ATTENDANCE_FIND_ALL = ATTENDANCE + "/findAll";
 	public static final String ATTENDANCE_MARK = ATTENDANCE + "/mark/{status}";
 	public static final String ATTENDANCE_Status = ATTENDANCE + "/mark/{leave-status}";
-	
+
 	public static final String SALARY = API_PATH + "/salary";
 	public static final String SALARY_ADD = SALARY + "/add";
 	public static final String SALARY_FIND_ALL = SALARY + "/findAll";
@@ -195,7 +203,10 @@ public abstract class ApiController {
 	public static final String ACCOUNT_DETAILS_DELETE = ACCOUNT_DETAILS + "/delete";
 	public static final String ACCOUNT_DETAILS_UPDATE_BALANCE = ACCOUNT_DETAILS + "/balance";
 	public static final String ACCOUNT_PAYMENT = ACCOUNT_DETAILS + "/paymentById/{id}";
-	
+	public static final String ACCOUNT_PAYMENT_UPDATE = ACCOUNT_DETAILS + "/balance/transfer";
+	public static final String ACCOUNT_PAYMENT_AMOUNTPAID = ACCOUNT_DETAILS + "/balance/amountPaid";
+
+	public static final String ACCOUNT_DETAILS_BALANCE_TOTAL = ACCOUNT_DETAILS + "/calculateTotalBalance";
 
 	public static final String DEPARTMENT = API_PATH + "/department";
 	public static final String DEPARTMENT_ADD = DEPARTMENT + "/add";
@@ -212,6 +223,8 @@ public abstract class ApiController {
 	public static final String INVENTORY_REQUEST_INVOICE = INVENTORY_REQUEST + "/invoice";
 	public static final String INVENTORY_REQUEST_FIND_ONE = INVENTORY_REQUEST + "/findById/{id}";
 	public static final String INVENTORY_REQUEST_FIND_BY_VENDOR = INVENTORY_REQUEST + "/findByVendorId/{id}";
+	public static final String INVENTORY_REQUEST_FIND_BY_VENDOR_GETALL = INVENTORY_REQUEST + "/findAllVendor";
+
 	public static final String INVENTORY_REQUEST_MARK_OFF = INVENTORY_REQUEST + "/markOff";
 	public static final String INVENTORY_REQUEST_CANCEL = INVENTORY_REQUEST + "/cancel";
 	public static final String INVENTORY_REQUEST_RETURN = INVENTORY_REQUEST + "/return";
@@ -237,6 +250,8 @@ public abstract class ApiController {
 	public static final String CUSTOMER_ORDER_PRICE_HISTORY = CUSTOMER_ORDER + "/priceHistory/add";
 	public static final String CUSTOMER_ORDER_PRICE_HISTORY_FIND_ALL = CUSTOMER_ORDER + "/priceHistory/findAll/{id}";
 	public static final String CUSTOMER_ORDER_FIND_BY_CUSTOMER = CUSTOMER_ORDER + "/findByCustomerId/{id}";
+	public static final String CUSTOMER_ORDER_FIND_TOTALSUM_PRICE = CUSTOMER_ORDER + "/findTotal/prices";
+	public static final String CUSTOMER_ORDER_FIND_TOTAL = CUSTOMER_ORDER + "/findTotal/prices";
 
 	public static final String EMPLOYEE = API_PATH + "/employee";
 	public static final String EMPLOYEE_ADD = EMPLOYEE + "/add";
@@ -269,6 +284,7 @@ public abstract class ApiController {
 	public static final String CUSTOMER_FIND_ALL = CUSTOMER + "/findAll";
 	public static final String CUSTOMER_FIND_ONE = CUSTOMER + "/findById/{id}";
 	public static final String CUSTOMER_DELETE = CUSTOMER + "/delete";
+
 	public static final String CUSTOMER_STATUS = CUSTOMER + "/status/{id}/{status}";
 	public static final String CUSTOMER_BLOCK = CUSTOMER + "/block/{id}/{block}";
 
@@ -278,19 +294,118 @@ public abstract class ApiController {
 	public static final String ELUTION_CUSTOMER_FIND_ALL = ELUTION_CUSTOMER + "/findAll";
 	public static final String ELUTION_CUSTOMER_FIND_ONE = ELUTION_CUSTOMER + "/findById/{id}";
 	public static final String ELUTION_CUSTOMER_DELETE = ELUTION_CUSTOMER + "/delete";
+
 	public static final String ELUTION_CUSTOMER_STATUS = ELUTION_CUSTOMER + "/status/{id}/{status}";
 	public static final String ELUTION_CUSTOMER_BLOCK = ELUTION_CUSTOMER + "/block/{id}/{block}";
-	
+
 	public static final String ELUTION_MACHINE = API_PATH + "/elution/machine";
 	public static final String ELUTION_MACHINE_ADD = ELUTION_MACHINE + "/add";
 	public static final String ELUTION_MACHINE_UPDATE = ELUTION_MACHINE + "/{id}";
 	public static final String ELUTION_MACHINE_FIND_ALL = ELUTION_MACHINE + "/findAll";
 	public static final String ELUTION_MACHINE_DELETE = ELUTION_MACHINE + "/delete";
+	public static final String ELUTION_MACHINE_FIND_ONE = ELUTION_MACHINE + "/findById/{id}";
 
 	public static final String About_Info = API_PATH + "/setting/agreement";
 	public static final String AboutAgreement = About_Info + "/add";
-	
+
 	public static final String About_add_get = About_Info + "/findAll";
+
+	protected static final String Finanace_Account_ADD = API_PATH + "/financeRecord/add";
+	protected static final String Finanace_Account_Update = API_PATH + "/financeRecord/update/{id}";
+	protected static final String Finanace_Account_Delete = API_PATH + "/financeRecord/delete/{id}";
+	protected static final String Finanace_Account_FindAll = API_PATH + "/financeRecord/findAll";
+	protected static final String Finanace_Account_PayementType = API_PATH + "/financeRecordPaymentType/findAll";
+	protected static final String Finanace_Account_RecordType = API_PATH + "/financeRecordType/findAll";
+	protected static final String Finanace_Account_StatusType = API_PATH + "/financeRecordStatusType/findAll";
+	protected static final String Finanace_Account_AddType = API_PATH + "/financeRecordAddType/findAll";
+	protected static final String Finanace_Account_GETADMINTYPESALL = API_PATH + "/financeRecordGetAdminType/findAll";
+	protected static final String FINANCE_DOCUMENT_UPLOAD = API_PATH + "/documentFileTypeAdd/findAll";
+	protected static final String Finanace_Account_FILTER = API_PATH + "/financeRecordGetAdminType/filter";
+	protected static final String Finanace_Account_FINANCERECORD = API_PATH
+			+ "/financeRecordGetAdminType/financeRecordSum";
+	protected static final String Finanace_Account_CALCULATE_BALANCE_ACCOUNT = API_PATH
+			+ "/financeRecordBalanceAccouts/allAccounts";
+	protected static final String Finanace_Account_BALANCE_CUSTOMERORDER_PRICE = API_PATH
+			+ "/financeRecordBalanceAccouts/customerOrderPrice";
+	protected static final String Finanace_Account_BALANCE_EMPLOYEE_TOTALSALARY = API_PATH
+			+ "/financeRecordBalanceAccouts/employeeTotalSalary";
+	protected static final String Finanace_Account_RECORD_FINDBYID = API_PATH + "/financeRecordFindBy/{id}";
+
+	protected static final String ELUTION_Finanace_Account_ADD = API_PATH + "/elutionFinanceRecord/add";
+	protected static final String ELUTION_Finanace_Account_Update = API_PATH + "/elutionFinanceRecord/update/{id}";
+	protected static final String ELUTION_Finanace_Account_Delete = API_PATH + "/elutionFinanceRecord/delete/{id}";
+	protected static final String ELUTION_Finanace_Account_FindAll = API_PATH + "/elutionFinanceRecord/findAll";
+	protected static final String ELUTION_Finanace_Account_PayementType = API_PATH
+			+ "/elutionFinanceRecordPaymentType/findAll";
+	protected static final String ELUTION_Finanace_Account_RecordType = API_PATH + "/elutionFinanceRecordType/findAll";
+	protected static final String ELUTION_Finanace_Account_StatusType = API_PATH
+			+ "/elutionFinanceRecordStatusType/findAll";
+	protected static final String ELUTION_Finanace_Account_AddType = API_PATH + "/elutionFinanceRecordAddType/findAll";
+	protected static final String Elution_Finanace_Account_CALCULATE_BALANCE_ACCOUNT = API_PATH
+			+ "/elutionFinanceAccountBalance/allAccounts";
+	protected static final String Elution_Finanace_Account_BALANCE_CUSTOMERORDER_PRICE = API_PATH
+			+ "/elutionFinanceCustomerOrder/priceTotal";
+	protected static final String  Elution_Finanace_Account_BALANCE_EMPLOYEE_TOTALSALARY = API_PATH
+			+ "/elutionFinanceEmployeeSalary/priceTotal";
+	protected static final String ELUTION_Finanace_Account_RECORD_FINDBYID = API_PATH
+			+ "/elutionFinanceRecordFindBy/{id}";
+	protected static final String FELUTION_inanace_Account_GETADMINTYPESALL = API_PATH
+			+ "/elutionFinanceRecordGetAdminType/findAll";
+	protected static final String ELUTION_Finanace_Account_FILTER = API_PATH
+			+ "/elutionFinanceRecordGetAdminType/filter";
+	protected static final String ELUTION_Finanace_Account_FINANCERECORD = API_PATH
+			+ "/elutionFinanceRecordGetAdminType/financeRecordSum";
+
+	public static final String ELUTION_ORDER = API_PATH + "/elution/order";
+	public static final String ELUTION_ORDER_ADD = ELUTION_ORDER + "/add";
+	public static final String ELUTION_ORDER_FIND_ALL = ELUTION_ORDER + "/findAll";
+	public static final String ELUTION_ORDER_FIND_ONE = ELUTION_ORDER + "/findById/{id}";
+	public static final String ELUTION_ORDER_CANCEL = ELUTION_ORDER + "/cancel";
+	public static final String ELUTION_ORDER_INVOICE = ELUTION_ORDER + "/invoice";
+	public static final String ELUTION_ORDER_FIND_BY_CUSTOMER = ELUTION_ORDER + "/findByCustomerId/{id}";
+	public static final String ELUTION_ORDER_STATUS = ELUTION_ORDER + "/status/{id}/{status}";
+	public static final String ELUTION_ORDER_STATUS_HISTORY = ELUTION_ORDER + "/StatusHistory/findById/{id}";
+	public static final String ELUTION_ORDER_CANCELED_FIND_ONE = ELUTION_ORDER + "/canceled/findById/{id}";
+
+	public static final String ADD_INVOICE = API_PATH + "/accountInvoice/add";
+	public static final String ADD_INVOICE_FINDALL = API_PATH + "/accountInvoiceRecord/findAll";
+	public static final String ADD_INVOICE_UPDATE_BY_ID = API_PATH + "/accountInvoiceRecord/update/{id}";
+	public static final String ADD_INVOICE_DOWNLOAD = API_PATH + "/accountInvoiceRecord/download/{id}";
+	public static final String ADD_INVOICE_DELETE = API_PATH + "/accountInvoiceRecord/delete-invoice/{id}";
+	public static final String ADD_INVOICE_FINDBYID = API_PATH + "/accountInvoiceRecord//{id}";
+
+	public static final String ELUTION_ADD_INVOICE = API_PATH + "/elutionAccountInvoice/add";
+	public static final String ELUTION_ADD_INVOICE_FINDALL = API_PATH + "/elutionAccountInvoiceRecord/findAll";
+	public static final String ELUTION_ADD_INVOICE_UPDATE_BY_ID = API_PATH + "/elutionAccountInvoiceRecord/update/{id}";
+	public static final String ELUTION_ADD_INVOICE_DOWNLOAD = API_PATH + "/elutionAccountInvoiceRecord/download/{id}";
+	public static final String ELUTION_ADD_INVOICE_DELETE = API_PATH
+			+ "/elutionAccountInvoiceRecord/delete-invoice/{id}";
+	public static final String ELUTION_ADD_INVOICE_FINDBYID = API_PATH + "/elutionAccountInvoiceRecord/{id}";
+
+	public static final String ACCOUNT_FINANCE_TAX = API_PATH + "/accountFinanceTax";
+	public static final String ACCOUNT_FINANCE_ADD = ACCOUNT_FINANCE_TAX + "/add";
+	public static final String ACCOUNT_FINANCE_UPDATE_BY_ID = ACCOUNT_FINANCE_TAX + "/update/{id}";
+	public static final String ACCOUNT_FINANCE_DELETE_BY_ID = ACCOUNT_FINANCE_TAX + "/delete/{id}";
+	public static final String ACCOUNT_FINANCE_GETALL = ACCOUNT_FINANCE_TAX + "/findall";
+	public static final String ACCOUNT_FINANCE_GETALL_BY_TAXTPE = ACCOUNT_FINANCE_TAX + "/findby-tax-type/{taxType}";
+	public static final String ACCOUNT_FINANCE_GETALL_BY_ID = ACCOUNT_FINANCE_TAX + "/api/account-finance-tax/{id}";
+	protected static final String ADMIN_ADD_TYPE = API_PATH + "/financeRecord";
+	protected static final String ADMIN_ADD_TYPE_ADD = API_PATH + "/add";
+	protected static final String ADMIN_ADD_TYPE_UPDATE = API_PATH + "/update/{id}";
+	protected static final String ADMIN_ADD_TYPE_DELETE = API_PATH + "/delete/{id}";
+	protected static final String ADMIN_ADD_TYPE_FINDALL = API_PATH + "/findAll";
+
+	protected static final String AUDIT_RECONSILE_GETALLDATA = API_PATH + "/auditAndReconsile/allData";
+	protected static final String AUDIT_RECONSILE_GETALLRecords = API_PATH + "/auditAndReconsile/fndAll";
+	protected static final String AUDIT_RECONSILE_GETVERICATION = API_PATH + "/auditAndReconsile/update-verified";
+	protected static final String AUDIT_RECONSILE_FILTER_VERIFY = API_PATH + "/getByVerified";
+
+	protected static final String RECONSILE_GETALLDATA = API_PATH + "/reconsile/allData";
+	protected static final String RECONSILE_GETALLRecords = API_PATH + "/reconsile/fndAll";
+	protected static final String RECONSILE_GETVERICATION = API_PATH + "/reconsile/update-verified";
+	protected static final String RECONSILE_FILTER_VERIFY = API_PATH + "reconsile/getByVerified";
+
+	protected static final String AUDIT_RECONSILE_VERIFY = API_PATH + "/auditAndReconsile/verify/{id}";
 
 	public ResponseEntity<GenericResponse> onSuccess(Object result, String message) {
 		GenericResponse genericResponse = new GenericResponse();

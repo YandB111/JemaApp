@@ -33,5 +33,7 @@ public class ChemicalDTO {
 	String hsCode;
 
 	Date expireDate;
+	
+	
 
 }

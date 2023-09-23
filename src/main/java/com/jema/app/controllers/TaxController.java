@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.jema.app.dto.PageRequestDTO;
 import com.jema.app.dto.PageResponseDTO;
@@ -49,7 +50,7 @@ public class TaxController extends ApiController {
 
 	@Autowired
 	TaxService taxService;
-	
+
 	/*
 	 * ======================== Tax ADD =================
 	 */
@@ -61,19 +62,28 @@ public class TaxController extends ApiController {
 	@CrossOrigin
 	@PostMapping(value = TAX_ADD, produces = "application/json")
 	public ResponseEntity<?> addTax(@Valid @RequestBody TaxDTO taxDTO) {
-		logger.info("Request:In Tax Controller for Add Tax :{} ", taxDTO);
-		GenericResponse genericResponse = new GenericResponse();
+
+		logger.info("Request: In Tax Controller for Add Tax: {}", taxDTO);
 
 		Tax tax = new Tax();
 		BeanUtils.copyProperties(taxDTO, tax);
-		tax.setCreateTime(new Date());
-		tax.setUpdateTime(new Date());
-		Long id = taxService.save(tax);
-		taxDTO.setId(id);
 
-		return new ResponseEntity<GenericResponse>(
-				genericResponse.getResponse(taxDTO, "Successfully added", HttpStatus.OK), HttpStatus.OK);
+		try {
+			tax.setCreateTime(new Date());
+			tax.setUpdateTime(new Date());
 
+			Long id = taxService.save(tax);
+			taxDTO.setId(id);
+			return ResponseEntity.status(HttpStatus.CREATED)
+					.body(new GenericResponse().getResponse(taxDTO, "Successfully added", HttpStatus.OK));
+		} catch (ResponseStatusException ex) {
+			if (ex.getStatus() == HttpStatus.CONFLICT) {
+				return ResponseEntity.status(HttpStatus.CONFLICT)
+						.body(new GenericResponse().getResponse(null, ex.getReason(), HttpStatus.CONFLICT));
+			} else {
+				throw ex; // Re-throw if it's not a conflict status
+			}
+		}
 	}
 
 	/*
@@ -158,7 +168,7 @@ public class TaxController extends ApiController {
 			e.printStackTrace();
 		}
 		Object obj = (new PageResponseDTO()).getRespose(dataList, recordsCount);
-		
+
 		return onSuccess(obj, Constants.TAX_FETCHED);
 	}
 

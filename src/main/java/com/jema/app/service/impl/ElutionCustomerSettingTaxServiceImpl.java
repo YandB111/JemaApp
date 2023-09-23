@@ -15,7 +15,9 @@ import javax.persistence.Query;
 import javax.persistence.Tuple;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.google.gson.Gson;
 import com.jema.app.dto.ElutionCustomerSettingTaxListView;
@@ -39,8 +41,17 @@ public class ElutionCustomerSettingTaxServiceImpl implements ElutionCustomerSett
 
 	@Override
 	public Long save(ElutionCustomerSettingTax mCustomerSettingTax) {
-		// TODO Auto-generated method stub
-		return mElutionCustomerSettingTaxRepository.save(mCustomerSettingTax).getId();
+	    // Check if a tax with the same name (case-insensitive) already exists
+	    String taxName = mCustomerSettingTax.getName();
+	    ElutionCustomerSettingTax existingTax = mElutionCustomerSettingTaxRepository.findByNameIgnoreCase(taxName);
+	    
+	    if (existingTax != null) {
+	        // Tax with a similar name (case-insensitive) already exists, throw a conflict exception
+	        throw new ResponseStatusException(HttpStatus.CONFLICT, "Tax with a similar name already exists");
+	    }
+	    
+	    // No conflict, save the new tax
+	    return mElutionCustomerSettingTaxRepository.save(mCustomerSettingTax).getId();
 	}
 
 	@Override

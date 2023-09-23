@@ -12,9 +12,12 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.Tuple;
+import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.google.gson.Gson;
 import com.jema.app.dto.CustomerListView;
@@ -39,7 +42,19 @@ public class ElutionCustomerServiceImpl implements ElutionCustomerService {
 
 	@Override
 	public String save(ElutionCustomer mElutionCustomer) {
-		// TODO Auto-generated method stub
+
+		String email = mElutionCustomer.getEmail();
+
+		// Check if the email already exists in the database (case-insensitive)
+		boolean emailExists = mElutionCustomerRepository.existsByEmailIgnoreCase(email);
+
+		if (emailExists) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					"ElutionCustomer with the same email already exists.");
+		}
+
+		// Save the ElutionCustomer instance if the email is unique
+
 		return mElutionCustomerRepository.save(mElutionCustomer).getId();
 	}
 
@@ -57,9 +72,9 @@ public class ElutionCustomerServiceImpl implements ElutionCustomerService {
 	}
 
 	@Override
-	public int updateStatus(String id, Integer status) {
+	public int updateStatus(List<String> ids, Integer status) {
 		// TODO Auto-generated method stub
-		return mElutionCustomerRepository.updateStatus(id, status);
+		return mElutionCustomerRepository.updateStatus(ids, status);
 	}
 
 	@Override
@@ -106,8 +121,49 @@ public class ElutionCustomerServiceImpl implements ElutionCustomerService {
 	}
 
 	@Override
-	public int block(String id, Integer block) {
+	public int block(List<String> ids, Integer block) {
 		// TODO Auto-generated method stub
-		return mElutionCustomerRepository.block(id, block);
+		return mElutionCustomerRepository.block(ids, block);
 	}
+
+	@Override
+	public boolean isEmailExists(String email) {
+		return mElutionCustomerRepository.existsByEmailIgnoreCase(email);
+	}
+
+	@Override
+	@Transactional
+	public String updateElutionCustomer(ElutionCustomer elutionCustomer) {
+		boolean emailExistsInOtherElutionCustomers = mElutionCustomerRepository
+				.existsByEmailIgnoreCaseAndIdNot(elutionCustomer.getEmail(), elutionCustomer.getId());
+
+		if (emailExistsInOtherElutionCustomers) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					"ElutionCustomer with the same email already exists.");
+		}
+
+		ElutionCustomer existingElutionCustomer = mElutionCustomerRepository.findById(elutionCustomer.getId())
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Elution Customer not found"));
+
+		// Update the fields
+		existingElutionCustomer.setName(elutionCustomer.getName());
+		existingElutionCustomer.setEmail(elutionCustomer.getEmail());
+		existingElutionCustomer.setPlantName(elutionCustomer.getPlantName());
+		existingElutionCustomer.setPlantLocation(elutionCustomer.getPlantLocation());
+		existingElutionCustomer.setTin(elutionCustomer.getTin());
+		existingElutionCustomer.setContact(elutionCustomer.getContact());
+		existingElutionCustomer.setAddress(elutionCustomer.getAddress());
+		existingElutionCustomer.setDeleted(elutionCustomer.getDeleted());
+		existingElutionCustomer.setAccountNumber(elutionCustomer.getAccountNumber());
+		existingElutionCustomer.setBankName(elutionCustomer.getBankName());
+		existingElutionCustomer.setBranchName(elutionCustomer.getBranchName());
+
+		return mElutionCustomerRepository.save(existingElutionCustomer).getId();
+	}
+
+	@Override
+	public boolean isEmailExistsInOtherElutionCustomers(String email, String id) {
+		return mElutionCustomerRepository.existsByEmailIgnoreCaseAndIdNot(email, id);
+	}
+
 }

@@ -14,6 +14,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.Tuple;
 
+import javax.transaction.Transactional;
+
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +24,12 @@ import com.google.gson.Gson;
 import com.jema.app.dto.AccountDetailsView;
 import com.jema.app.dto.PageRequestDTO;
 import com.jema.app.entities.AccountDetails;
+
+import com.jema.app.entities.Employee;
+import com.jema.app.entities.SalaryDetails;
 import com.jema.app.repositories.AccountDetailsRepository;
+import com.jema.app.repositories.EmployeeRepository;
+
 import com.jema.app.service.AccountDetailsService;
 import com.jema.app.utils.AppUtils;
 
@@ -30,6 +38,10 @@ public class AccountDetailsServiceImpl implements AccountDetailsService {
 
 	@Autowired
 	private EntityManager entityManager;
+
+	@Autowired
+	private EmployeeRepository employeeRepository; // Inject your Employee repository
+
 
 	@Autowired
 	private Gson gson;
@@ -101,11 +113,40 @@ public class AccountDetailsServiceImpl implements AccountDetailsService {
 		return dataList;
 	}
 
+
 	public void subtractAmountFromBalance(Long accountId, Long amount) {
 		int rowsUpdated = accountDetailsRepository.updateBalance(accountId, amount);
 		if (rowsUpdated != 1) {
 			throw new RuntimeException("Failed to update balance.");
 		}
 	}
+
+	@Override
+	@Transactional
+	public void calculateAndSaveTotalBalance() {
+		List<AccountDetails> accounts = accountDetailsRepository.findAll();
+
+		for (AccountDetails account : accounts) {
+			Employee employee = account.getEmployee();
+			if (employee != null) {
+				SalaryDetails salaryDetails = employee.getSalaryDetails();
+				if (salaryDetails != null) {
+					salaryDetails.calculateAndSetTotalValue(); // Calculate the totalSalary
+					account.setTotalBalance(salaryDetails.getTotalSalary().longValue()); // Set the total_balance
+					accountDetailsRepository.save(account); // Save the AccountDetails with the updated total_balance
+				}
+			}
+		}
+
+	}
+
+	public List<Long> getAllBalances() {
+		return accountDetailsRepository.getAllBalances();
+	}
+
+	public Long calculateTotalBalance() {
+		return accountDetailsRepository.calculateTotalBalance();
+	}
+
 
 }

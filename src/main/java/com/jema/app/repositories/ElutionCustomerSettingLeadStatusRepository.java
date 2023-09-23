@@ -25,4 +25,8 @@ public interface ElutionCustomerSettingLeadStatusRepository extends JpaRepositor
 	@Modifying
 	@Query(value = "UPDATE elution_customer_setting_lead_status  SET status=?1  WHERE id IN ?2 ", nativeQuery = true)
 	int updateStatus(@Param("status") int status, @Param("id") List<Long> idsArrays);
+
+
+	boolean existsByNameIgnoreCase(String statusName);
+
 }

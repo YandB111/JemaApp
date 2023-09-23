@@ -13,7 +13,6 @@ import javax.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,10 +24,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
-import com.jema.app.dto.TaxDTO;
-import com.jema.app.entities.Tax;
 import com.jema.app.entities.Type;
+import com.jema.app.repositories.TypeRepository;
 import com.jema.app.response.GenericResponse;
 import com.jema.app.service.TypeService;
 import com.jema.app.utils.Constants;
@@ -47,22 +46,43 @@ public class TypeController extends ApiController {
 	@Autowired
 	TypeService typeService;
 
+	@Autowired
+	TypeRepository typeRepository;
+
 	/*
 	 * ======================== Type ADD =================
 	 */
 	@CrossOrigin
 	@PostMapping(value = TYPE_ADD, produces = "application/json")
 	public ResponseEntity<?> addType(@Valid @RequestBody Type type) {
-		logger.info("Request:In Type Controller for Add Type :{} ", type);
-		GenericResponse genericResponse = new GenericResponse();
+	    logger.info("Request: In Type Controller for Add Type: {}", type);
+	    GenericResponse genericResponse = new GenericResponse();
 
-		Long id = typeService.save(type);
-		type.setId(id);
+	    try {
+	        // Check if a type with the same name already exists (ignoring case)
+	        String typeName = type.getName();
+	        Type existingTypeWithSameName = typeService.findByNameIgnoreCase(typeName);
 
-		return new ResponseEntity<GenericResponse>(
-				genericResponse.getResponse(type, "Successfully added", HttpStatus.OK), HttpStatus.OK);
+	        if (existingTypeWithSameName == null || existingTypeWithSameName.getId().equals(type.getId())) {
+	            // No conflict, save the new type
+	            Long id = typeService.save(type);
+	            type.setId(id);
 
+	            return new ResponseEntity<GenericResponse>(
+	                    genericResponse.getResponse(type, "Successfully added", HttpStatus.OK), HttpStatus.OK);
+	        } else {
+	            // Return a conflict status code if the name already exists for a different ID
+	            return new ResponseEntity<GenericResponse>(
+	                    genericResponse.getResponse(null, "Name conflicts with another ID", HttpStatus.CONFLICT),
+	                    HttpStatus.CONFLICT);
+	        }
+	    } catch (ResponseStatusException ex) {
+	        // Handle other exceptions if needed
+	        return new ResponseEntity<GenericResponse>(
+	                genericResponse.getResponse(null, ex.getReason(), HttpStatus.CONFLICT), HttpStatus.CONFLICT);
+	    }
 	}
+
 
 	/*
 	 * ======================== Delete Type ========================
@@ -97,26 +117,42 @@ public class TypeController extends ApiController {
 	@CrossOrigin
 	@PutMapping(value = TYPE_UPDATE, produces = "application/json")
 	public ResponseEntity<?> updateType(@PathVariable(name = "id", required = true) Long id,
-			@Valid @RequestBody Type type) {
-		logger.info("Request:In Type Controller for Update Type :{} ", type);
-		GenericResponse genericResponse = new GenericResponse();
+	        @Valid @RequestBody Type type) {
+	    logger.info("Request: In Type Controller for Update Type: {}", type);
+	    GenericResponse genericResponse = new GenericResponse();
+	    try {
+	    Type existingType = typeService.findById(id);
 
-		Type mType = typeService.findById(id);
+	    if (existingType != null) {
+	        // Check if the new name already exists in the database
+	        String newTypeName = type.getName();
+	        Type existingTypeWithNewName = typeService.findByName(newTypeName);
 
-		if (mType != null) {
-			type.setId(id);
-			typeService.save(type);
+	        if (existingTypeWithNewName == null || existingTypeWithNewName.getId().equals(id)) {
+	            // Update the type since the new name doesn't conflict or belongs to the same ID
+	            existingType.setName(newTypeName); // Change the name
+	            existingType.setDescription(type.getDescription()); // Update the description
+	            typeService.save(existingType);
 
-			return new ResponseEntity<GenericResponse>(
-					genericResponse.getResponse(type, "Type successfully Updated", HttpStatus.OK),
-					HttpStatus.OK);
-
-		} else {
-			return new ResponseEntity<>(genericResponse.getResponse("", "Invalid Type ID", HttpStatus.OK),
-					HttpStatus.OK);
-		}
-
+	            return new ResponseEntity<GenericResponse>(
+	                    genericResponse.getResponse(existingType, "Type successfully Updated", HttpStatus.OK), HttpStatus.OK);
+	        } else {
+	            // Return a conflict status code if the new name belongs to a different ID
+	            return new ResponseEntity<>(genericResponse.getResponse("", "Name conflicts with another ID", HttpStatus.CONFLICT),
+	                    HttpStatus.CONFLICT);
+	        }
+	    } else {
+	        return new ResponseEntity<>(genericResponse.getResponse("", "Invalid Type ID", HttpStatus.OK),
+	                HttpStatus.OK);
+	    }
+	    }
+	    catch (ResponseStatusException ex) {
+	        // Handle other exceptions if needed
+	        return new ResponseEntity<GenericResponse>(
+	                genericResponse.getResponse(null, ex.getReason(), HttpStatus.CONFLICT), HttpStatus.CONFLICT);
+	    }
 	}
+
 
 	/*
 	 * ======================== Get All Type =================
@@ -135,7 +171,7 @@ public class TypeController extends ApiController {
 		List<Type> mType = typeService.findAll();
 		return onSuccess(mType, Constants.TYPE_FETCHED);
 	}
-	
+
 	/*
 	 * ======================== Find One Type ========================
 	 */

@@ -25,6 +25,8 @@ public class Constants {
 	public static final String CUSTOMER_FETCHED = "Customer Fetched";
 	public static final String INVENTORY_FETCHED = "Inventory Fetched";
 	public static final String CUSTOMER_ORDER_FETCHED = "Customer Order Fetched";
+
+
 	public static final String PRICE_HISTORY_FETCHED = "Price History Fetched";
 	public static final String BOARD_UNIVERSITY_FETCHED = "Board University Fetched";
 	public static final String TAX_FETCHED = "TAX Fetched";
@@ -45,6 +47,13 @@ public class Constants {
 	public static final String S3_DOCUMENTS_FOLDER = "documents";
 	public static final String S3_BRANCH_FOLDER = "branch";
 	public static final String S3_EMPLOYEE_FOLDER = "employee";
+
+	
+	public static final String FINANCE_RECORD_FETCHED = "Finance Record Fetched";
+	public static final String ELUTION_ORDER_FETCHED = "Order Fetched";
+	
+	
+
 
 	public static int SALARY_UNPAID = 0;
 	public static int SALARY_PAID = 1;

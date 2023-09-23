@@ -15,7 +15,11 @@ import javax.persistence.Query;
 import javax.persistence.Tuple;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 
 import com.google.gson.Gson;
 import com.jema.app.dto.CustomerSettingStatusListView;
@@ -37,11 +41,24 @@ public class CustomerSettingStatusServiceImpl implements CustomerSettingStatusSe
 	@Autowired
 	private Gson gson;
 
-	@Override
+
 	public Long save(CustomerSettingStatus customerSettingStatus) {
-		// TODO Auto-generated method stub
-		return customerSettingStatusRepository.save(customerSettingStatus).getId();
+		String statusName = customerSettingStatus.getName();
+
+		// Check if a CustomerSettingStatus with the same name already exists in the
+		// database (ignoring case)
+		boolean statusExistsWithName = customerSettingStatusRepository.existsByNameIgnoreCase(statusName);
+
+		if (statusExistsWithName) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					"Status with the same name already exists in the database.");
+		}
+		else {
+			return customerSettingStatusRepository.save(customerSettingStatus).getId();
+		}
 	}
+		// Save the CustomerSettingStatus instance if the name is unique
+
 
 	@Override
 	public List<CustomerSettingStatusListView> findAll(PageRequestDTO pageRequestDTO) {

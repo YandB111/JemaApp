@@ -7,6 +7,7 @@
 
 package com.jema.app.service;
 
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -24,6 +25,7 @@ public interface BranchService {
 
 	public Page<Branch> findAll(Pageable pageable);
 
+
 	public List<BranchView> findAll(PageRequestDTO pageRequestDTO);
 
 	public Branch findById(Long id);
@@ -34,8 +36,17 @@ public interface BranchService {
 
 	public Long getCount(String name);
 
-	Branch updateBranch(Long id, String newName, String newEmail);
+	
 
 	boolean isEmailOrNameExists(String email, String name);
+
+	Branch updateBranch(Long id, String newName, String newEmail, String newImage, String newDescription,
+			String newLocation, Long newLeader, String newContact, Long newDepartment, Long newTotalEmployee,
+			Integer newStatus, Date newStartTime, Date newEndTime);
+
+	public boolean isEmailExistsInOtherBranches(String email, Long id);
+
+	public boolean isNameExistsInOtherBranches(String name, Long id);
+
 
 }

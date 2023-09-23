@@ -49,7 +49,9 @@ public class Customer {
 	@Column(name = "plant_location")
 	String plantLocation;
 
+
 	@Column(name = "name",unique = true)
+
 	String name;
 
 	@Column(name = "contact")
@@ -58,7 +60,9 @@ public class Customer {
 	@Column(name = "alternate_contact")
 	String alternateContact;
 
+
 	@Column(name = "email", unique = true)
+
 	String email;
 
 	@Column(name = "address")

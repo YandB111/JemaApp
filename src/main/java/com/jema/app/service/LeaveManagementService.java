@@ -7,7 +7,9 @@
 
 package com.jema.app.service;
 
+
 import java.util.Date;
+
 import java.util.List;
 
 import com.jema.app.dto.LeaveManagementView;
@@ -20,8 +22,10 @@ public interface LeaveManagementService {
 
 	public List<LeaveManagementView> findAll(PageRequestDTO pageRequestDTO);
 
+
 	public List<LeaveManagement> findByEmployeeId(Long id);
 
 	boolean isLeaveEntryExists(Long employeeId, Date date, int leaveType);
+
 
 }

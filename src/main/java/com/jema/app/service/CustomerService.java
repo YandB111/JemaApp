@@ -23,14 +23,10 @@ public interface CustomerService {
 
 	public int delete(List<String> ids);
 
-	public int updateStatus(String id, Integer status);
+	public int updateStatus(List<String> ids, Integer status);
 
-	public int block(String id, Integer status);
+	public int block(List<String> ids, Integer status);
 
-	boolean isEmailOrNameExists(String email, String name);
+	public List<Customer> findAll();
 
-	Customer updateCustomer(String id, String newName, String newEmail);
-
-	boolean isEmailOrNameExists(String email, String name, String excludeCustomerId);
-	
 }

@@ -39,4 +39,5 @@ public class SalaryAllowance {
 	@Column(name = "allowancevalue", columnDefinition = "DECIMAL(10, 2)")
 	double allowanceValue;
 
+	
 }

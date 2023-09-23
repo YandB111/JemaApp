@@ -35,4 +35,9 @@ public interface CustomerOrderService {
 	public int updateInvoice(String id, Date invoiceDate, String invoiceURL, String invoiceNumber);
 
 	public int updatePrice(String id, Double price, Long quantity, Double total_price, Double total_tax);
+
+	public Double calculateTotalAmountReceived();
+
+	List<CustomerOrder> findAllCustomerOrders();
+
 }

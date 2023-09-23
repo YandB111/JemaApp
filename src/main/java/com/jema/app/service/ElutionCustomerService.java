@@ -16,14 +16,27 @@ import com.jema.app.entities.ElutionCustomer;
 public interface ElutionCustomerService {
 
 	public String save(ElutionCustomer elutionCustomer);
-	
+
 	public List<ElutionCustomerListView> findAll(PageRequestDTO pageRequestDTO, Integer status);
-	
+
 	public ElutionCustomer findById(String id);
-	
+
 	public int delete(List<String> ids);
 
-	public int updateStatus(String id, Integer status);
 	
-	public int block(String id, Integer status);
+
+
+
+	public boolean isEmailExists(String email);
+
+	String updateElutionCustomer(ElutionCustomer elutionCustomer);
+
+	
+	public boolean isEmailExistsInOtherElutionCustomers(String email, String id);
+
+
+	public int updateStatus(List<String> ids, Integer status);
+
+	public int block(List<String> ids, Integer status);
+
 }

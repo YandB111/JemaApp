@@ -15,7 +15,9 @@ import javax.persistence.Query;
 import javax.persistence.Tuple;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.google.gson.Gson;
 import com.jema.app.dto.ElutionCustomerSettingStatusListView;
@@ -24,7 +26,6 @@ import com.jema.app.entities.ElutionCustomerSettingStatus;
 import com.jema.app.repositories.ElutionCustomerSettingStatusRepository;
 import com.jema.app.service.ElutionCustomerSettingStatusService;
 import com.jema.app.utils.AppUtils;
-
 @Service
 public class ElutionCustomerSettingStatusServiceImpl implements ElutionCustomerSettingStatusService {
 
@@ -39,7 +40,14 @@ public class ElutionCustomerSettingStatusServiceImpl implements ElutionCustomerS
 
 	@Override
 	public Long save(ElutionCustomerSettingStatus mElutionCustomerSettingStatus) {
-		// TODO Auto-generated method stub
+
+		String statusName = mElutionCustomerSettingStatus.getName();
+		boolean statusExistsWithName = mElutionCustomerSettingStatusRepository.existsByNameIgnoreCase(statusName);
+		if (statusExistsWithName) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					"Order Status with the same name already exists in the database.");
+		}
+
 		return mElutionCustomerSettingStatusRepository.save(mElutionCustomerSettingStatus).getId();
 	}
 

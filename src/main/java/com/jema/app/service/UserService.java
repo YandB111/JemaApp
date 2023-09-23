@@ -20,6 +20,8 @@ public interface UserService {
 	
 	public UserDTO login(String username, String password);
 
+
 	boolean changePassword(String oldPassword, String newPassword);
+
 
 }

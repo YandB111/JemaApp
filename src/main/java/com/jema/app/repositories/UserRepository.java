@@ -18,5 +18,5 @@ import com.jema.app.entities.User;
 public interface UserRepository extends JpaRepository<User, Long> {
 
 	Optional<User> findByEmail(String email);
-	
+
 }

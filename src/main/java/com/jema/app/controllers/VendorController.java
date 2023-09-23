@@ -65,6 +65,7 @@ public class VendorController extends ApiController {
 	public ResponseEntity<?> add(@Valid @RequestBody VendorDTO vendorDTO) {
 		logger.info("Request:In Vendor Controller for Add Vendor :{} ", vendorDTO);
 		GenericResponse genericResponse = new GenericResponse();
+
 		try {
 			Vendor vendor = new Vendor();
 			BeanUtils.copyProperties(vendorDTO, vendor);
@@ -128,8 +129,12 @@ public class VendorController extends ApiController {
 	}
 
 	/*
+<<<<<<< HEAD
 	 * ======================== Get All Vendor by Chemical ID
 	 * ==================================
+=======
+	 * ======================== Get All Vendor by Chemical ID ==================================
+>>>>>>> a74bf511ab52fec3349dbcb67c72bd01a6924998
 	 */
 
 	@ApiOperation(value = "Get All Vendor by Chemical ID with Pagination", response = Iterable.class)
@@ -139,11 +144,13 @@ public class VendorController extends ApiController {
 			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
 	@CrossOrigin
 	@PostMapping(value = VENDOR_FIND_ALL_BY_CHEMICAL_ID, produces = "application/json")
+
 	public ResponseEntity<GenericResponse> getAllVendorsByChemicalId(
 			@PathVariable(name = "id", required = true) Long id, @Valid @RequestBody PageRequestDTO pageRequestDTO) {
 		logger.info("Rest request to get all Vendor {} ", pageRequestDTO);
 
 		Long recordsCount = 0l;
+
 
 		List<VendorListViewByChemicalID> dataList = vendorService.findAllVendorByChemicalId(pageRequestDTO, id);
 
@@ -169,6 +176,7 @@ public class VendorController extends ApiController {
 	@CrossOrigin
 	@PutMapping(value = VENDOR_UPDATE, produces = "application/json")
 	public ResponseEntity<?> update(@PathVariable(name = "id", required = true) Long id,
+
 	                                @Valid @RequestBody VendorDTO vendorDTO) {
 	    logger.info("Request:In Vendor Controller for Update Vendor :{} ", vendorDTO);
 	    GenericResponse genericResponse = new GenericResponse();

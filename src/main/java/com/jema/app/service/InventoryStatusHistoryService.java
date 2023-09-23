@@ -16,6 +16,5 @@ public interface InventoryStatusHistoryService {
 	public Long save(InventoryStatusHistory inventoryStatusHistory);
 
 	public List<InventoryStatusHistory> findById(String inventoryRequestId);
-	
-	
+
 }

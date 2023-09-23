@@ -17,7 +17,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
+import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 
 import lombok.Data;
@@ -56,16 +56,28 @@ public class SalaryDetails {
 	@Column(name = "total_salary")
 	private Double totalSalary;
 
+	@Column(name = "valueOfTax", columnDefinition = "DECIMAL(10, 2)")
+	double taxOfValue;
+
+	@Column(name = "valueOfValue", columnDefinition = "DECIMAL(10, 2)")
+	double allowanceOfValue;
+
 	public void calculateAndSetTotalValue() {
-		if (basicSalary != null && joiningBonus != null && salaryAllowance != null && salaryDeduction != null) {
-			double allowanceSum = salaryAllowance.stream().mapToDouble(SalaryAllowance::getAllowanceValue).sum();
 
-			double deductionSum = salaryDeduction.stream().mapToDouble(SalaryDeduction::getTaxValue).sum();
+		// Calculate the totalSalary considering basicSalary, joiningBonus,
+		// allowanceSum, and deductionSum
+		totalSalary = basicSalary + allowanceOfValue - taxOfValue;
 
-			totalSalary = basicSalary + joiningBonus + allowanceSum - deductionSum;
+		if (joiningBonus != null) {
+			totalSalary += joiningBonus;
 		}
 	}
 
-	
+	@PreUpdate
+	public void updateTotalSalaryBeforeUpdate() {
+		calculateAndSetTotalValue();
+	}
 
+	
+	
 }

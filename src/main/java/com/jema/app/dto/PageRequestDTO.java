@@ -7,7 +7,7 @@
 
 package com.jema.app.dto;
 
-import javax.persistence.Column;
+
 import javax.validation.constraints.NotNull;
 
 import lombok.Data;
@@ -17,6 +17,7 @@ public class PageRequestDTO {
 
 	@NotNull(message = "Page size is mandatory")
 	int pageSize;
+
 
 	@NotNull(message = "Page number is mandatory")
 	int pageNumber;

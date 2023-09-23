@@ -27,7 +27,11 @@ public interface VendorService {
 	public int delete(List<Long> ids);
 
 	public int updateStatus(Long id, Integer status);
+	
+	public List<Vendor> findAll();
 
 	Long update(Vendor vendor);
+
+	String getVendorNameById(Long vendorId);
 
 }

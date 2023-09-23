@@ -7,6 +7,7 @@
 
 package com.jema.app.controllers;
 
+
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -37,7 +38,6 @@ import com.jema.app.dto.PageResponseDTO;
 import com.jema.app.dto.SubstractAmountRequestDTO;
 import com.jema.app.entities.AccountDetails;
 import com.jema.app.entities.Employee;
-import com.jema.app.entities.SalaryDetails;
 import com.jema.app.repositories.EmployeeRepository;
 import com.jema.app.response.GenericResponse;
 import com.jema.app.response.PaymentResponse;
@@ -57,6 +57,7 @@ public class AccountDetailsController extends ApiController {
 
 	@Autowired
 	AccountDetailsService accountDetailsService;
+
 	@Autowired
 	private EmployeeRepository employeeRepository;
 
@@ -64,92 +65,111 @@ public class AccountDetailsController extends ApiController {
 	 * ======================== Account Details ADD =======================
 	 */
 
+	@PostMapping(value = ACCOUNT_PAYMENT_UPDATE, produces = "application/json")
+	public ResponseEntity<String> updateTotalBalance() {
+		accountDetailsService.calculateAndSaveTotalBalance();
+		return ResponseEntity.ok("Total balance updated.");
+	}
+
 	@ApiOperation(value = "Subtract amount from balance", notes = "Subtracts the specified amount from the account balance.")
 	@ApiResponses({ @ApiResponse(code = 200, message = "Amount Paid successfully."),
 			@ApiResponse(code = 400, message = "Amount to subtract must be positive."),
 			@ApiResponse(code = 404, message = "Account or employee not found."),
 			@ApiResponse(code = 409, message = "Insufficient balance Account or Amount you are trying to put is more than existing amount.") })
-
 	@PostMapping(value = ACCOUNT_PAYMENT, produces = "application/json")
 	public ResponseEntity<PaymentResponse> subtractAmountFromBalance(
-	        @RequestBody SubstractAmountRequestDTO paymentRequest) {
-	    Long accountId = paymentRequest.getAccountId();
-	    List<Long> employeeIds = paymentRequest.getEmployeeIds();
-	    Long amountToBePaid = paymentRequest.getAmountToBePaid(); // This may be null
+			@RequestBody SubstractAmountRequestDTO paymentRequest) {
+		Long accountId = paymentRequest.getAccountId();
+		List<Long> employeeIds = paymentRequest.getEmployeeIds();
+		Long amountToBePaid = paymentRequest.getAmountToBePaid(); // This may be null
 
-	    try {
-	        AccountDetails accountDetails = accountDetailsService.findById(accountId);
-	        if (accountDetails == null) {
-	            return ResponseEntity.notFound().build();
-	        }
+		try {
+			AccountDetails accountDetails = accountDetailsService.findById(accountId);
+			if (accountDetails == null) {
+				return ResponseEntity.notFound().build();
+			}
 
-	        // Calculate total deduction for all employees
-	        Long totalDeduction = 0L;
-	        for (Long employeeId : employeeIds) {
-	            Employee employee = employeeRepository.findById(employeeId)
-	                    .orElseThrow(() -> new EntityNotFoundException("Employee not found."));
+			// Calculate total deduction and amountToBePaid for all employees
+			Long totalDeduction = 0L;
+			if (amountToBePaid != null) {
+				// If amountToBePaid is provided, use that value for all employees
+				totalDeduction = amountToBePaid;
+			} else {
+				for (Long employeeId : employeeIds) {
+					Employee employee = employeeRepository.findById(employeeId)
+							.orElseThrow(() -> new EntityNotFoundException("Employee not found."));
 
-	            // Get the total salary of the employee
-	            Long employeeTotalSalary = employee.getSalaryDetails().getTotalSalary().longValue();
-	            totalDeduction += employeeTotalSalary;
+					// Get the total salary of the employee
+					Long employeeTotalSalary = employee.getSalaryDetails().getTotalSalary().longValue();
+					totalDeduction += employeeTotalSalary;
 
-	            // Update amountPaid in Employee
-	            employee.setAmountPaid(employeeTotalSalary);
-	            employeeRepository.save(employee);
-	        }
+					// Update amountPaid in Employee
+					employee.setAmountRecieved(employeeTotalSalary);
+					employeeRepository.save(employee);
+				}
+			}
 
-	        // If AmountToBePaid is not provided, calculate total salary of employees
-	        if (amountToBePaid == null) {
-	            for (Long employeeId : employeeIds) {
-	                Employee employee = employeeRepository.findById(employeeId)
-	                        .orElseThrow(() -> new EntityNotFoundException("Employee not found."));
+			// Check payment eligibility based on lastPaymentDate
+			LocalDateTime currentDate = LocalDateTime.now();
+			for (Long employeeId : employeeIds) {
+				Employee employee = employeeRepository.findById(employeeId)
+						.orElseThrow(() -> new EntityNotFoundException("Employee not found."));
 
-	                Long employeeTotalSalary = employee.getSalaryDetails().getTotalSalary().longValue();
-	                amountToBePaid = employeeTotalSalary;
-	            }
-	        }
+				LocalDateTime lastPaymentDate = employee.getLastPaymentDate();
+				if (lastPaymentDate != null) {
+					LocalDateTime nextEligibleDate = lastPaymentDate.plusMonths(1);
+					if (currentDate.isBefore(nextEligibleDate)) {
+						return ResponseEntity.status(HttpStatus.CONFLICT).body(new PaymentResponse(
+								"Payment already made this month. Next eligible date: " + nextEligibleDate));
+					}
+				}
+			}
 
-	        // Check payment eligibility based on lastPaymentDate
-	        LocalDateTime currentDate = LocalDateTime.now();
-	        for (Long employeeId : employeeIds) {
-	            Employee employee = employeeRepository.findById(employeeId)
-	                    .orElseThrow(() -> new EntityNotFoundException("Employee not found."));
+			// Subtract totalDeduction from AccountDetails balance
+			Long currentBalance = accountDetails.getBalance();
+			if (currentBalance < totalDeduction) {
+				return ResponseEntity.status(HttpStatus.CONFLICT)
+						.body(new PaymentResponse("Insufficient balance in Account."));
+			}
 
-	            LocalDateTime lastPaymentDate = employee.getLastPaymentDate();
-	            if (lastPaymentDate != null) {
-	                LocalDateTime nextEligibleDate = lastPaymentDate.plusMonths(1);
-	                if (currentDate.isBefore(nextEligibleDate)) {
-	                    return ResponseEntity.status(HttpStatus.CONFLICT)
-	                            .body(new PaymentResponse("Payment already made this month. Next eligible date: " + nextEligibleDate));
-	                }
-	            }
-	        }
+			// Update lastPaymentDate for eligible employees
+			for (Long employeeId : employeeIds) {
+				Employee employee = employeeRepository.findById(employeeId)
+						.orElseThrow(() -> new EntityNotFoundException("Employee not found."));
 
-	        // Subtract totalDeduction from AccountDetails balance
-	        Long currentBalance = accountDetails.getBalance();
-	        if (currentBalance < totalDeduction || currentBalance < amountToBePaid) {
-	            return ResponseEntity.status(HttpStatus.CONFLICT)
-	                    .body(new PaymentResponse("Insufficient balance in Account."));
-	        }
+				employee.setLastPaymentDate(currentDate);
+				employeeRepository.save(employee);
+			}
 
-	        // Update lastPaymentDate for eligible employees
-	        for (Long employeeId : employeeIds) {
-	            Employee employee = employeeRepository.findById(employeeId)
-	                    .orElseThrow(() -> new EntityNotFoundException("Employee not found."));
+			accountDetails.setOriginalBalance(accountDetails.getBalance());
 
-	            employee.setLastPaymentDate(currentDate);
-	            employeeRepository.save(employee);
-	        }
+			Long totalOriginalBalance = accountDetails.getOriginalBalance();
+			Long newBalance = currentBalance - totalDeduction;
+			Long calculatedTotalAmountPaid = totalOriginalBalance - newBalance;
 
-	        Long newBalance = currentBalance - totalDeduction;
-	        accountDetails.setBalance(newBalance);
-	        accountDetailsService.save(accountDetails);
+			accountDetails.setBalance(newBalance);
 
-	        PaymentResponse response = new PaymentResponse("Amount Paid successfully.");
-	        return ResponseEntity.ok(response);
-	    } catch (EntityNotFoundException e) {
-	        return ResponseEntity.notFound().build();
-	    }
+			// Update totalAmountPaid in accountDetails entity
+			accountDetails.setTotalAmountPaid(calculatedTotalAmountPaid);
+
+			accountDetailsService.save(accountDetails);
+
+			// Update amountRecieved for employees if amountToBePaid is provided
+			if (amountToBePaid != null) {
+				for (Long employeeId : employeeIds) {
+					Employee employee = employeeRepository.findById(employeeId)
+							.orElseThrow(() -> new EntityNotFoundException("Employee not found."));
+
+					employee.setAmountRecieved(amountToBePaid);
+					employeeRepository.save(employee);
+				}
+			}
+
+			PaymentResponse response = new PaymentResponse("Amount Paid successfully.");
+			return ResponseEntity.ok(response);
+		} catch (EntityNotFoundException e) {
+			return ResponseEntity.notFound().build();
+		}
 	}
 
 
@@ -160,19 +180,25 @@ public class AccountDetailsController extends ApiController {
 			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
 	@CrossOrigin
 	@PostMapping(value = ACCOUNT_DETAILS_ADD, produces = "application/json")
-	public ResponseEntity<?> add(@Valid @RequestBody AccountDetailsDTO AccountDetailsDTO) {
-		logger.info("Request:In Account Details Controller for Add Account Details :{} ", AccountDetailsDTO);
+
+	public ResponseEntity<?> add(@Valid @RequestBody AccountDetailsDTO accountDetailsDTO) {
+		logger.info("Request: In Account Details Controller for Add Account Details: {}", accountDetailsDTO);
 		GenericResponse genericResponse = new GenericResponse();
 
 		AccountDetails accountDetails = new AccountDetails();
-		BeanUtils.copyProperties(AccountDetailsDTO, accountDetails);
+		BeanUtils.copyProperties(accountDetailsDTO, accountDetails);
 		accountDetails.setCreateTime(new Date());
 		accountDetails.setUpdateTime(new Date());
+		accountDetails.setBalance(accountDetailsDTO.getBalance());
+
+		// Set original balance
+		accountDetails.setOriginalBalance(accountDetails.getBalance());
+
 		Long id = accountDetailsService.save(accountDetails);
-		AccountDetailsDTO.setId(id);
+		accountDetailsDTO.setId(id);
 
 		return new ResponseEntity<GenericResponse>(
-				genericResponse.getResponse(AccountDetailsDTO, "Account Details successfully added", HttpStatus.OK),
+				genericResponse.getResponse(accountDetailsDTO, "Account Details successfully added", HttpStatus.OK),
 				HttpStatus.OK);
 
 	}
@@ -319,5 +345,14 @@ public class AccountDetailsController extends ApiController {
 		Object obj = (new PageResponseDTO()).getRespose(dataList, recordsCount);
 		return onSuccess(obj, Constants.ACCOUNTS_FETCHED);
 	}
+
+
+	@CrossOrigin
+	@GetMapping(value = ACCOUNT_DETAILS_BALANCE_TOTAL, produces = "application/json")
+	public ResponseEntity<Long> getTotalBalance() {
+		Long totalBalance = accountDetailsService.calculateTotalBalance();
+		return ResponseEntity.ok(totalBalance);
+	}
+
 
 }

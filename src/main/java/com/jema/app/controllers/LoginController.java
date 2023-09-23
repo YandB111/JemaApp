@@ -7,9 +7,9 @@
 
 package com.jema.app.controllers;
 
+
 import java.util.Date;
 
-import javax.naming.AuthenticationException;
 import javax.validation.Valid;
 
 import org.slf4j.Logger;
@@ -32,10 +32,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.jema.app.dto.ChangePasswordRequest;
+import com.amazonaws.services.identitymanagement.model.ChangePasswordRequest;
 import com.jema.app.dto.LoginDTO;
 import com.jema.app.dto.UserDTO;
 import com.jema.app.entities.User;
@@ -186,8 +185,8 @@ public class LoginController extends ApiController {
 				HttpStatus.OK);
 	}
 
-	@CrossOrigin
-	@PostMapping(value = PASSWORD_CHANGE, produces = "application/json")
+	 @CrossOrigin @PostMapping(value=PASSWORD_CHANGE,produces="application/json")
+
 	public ResponseEntity<PasswordChangeResponse> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
 	    try {
 	        boolean passwordChanged = userServiceImpl.changePassword(changePasswordRequest.getOldPassword(), changePasswordRequest.getNewPassword());
@@ -201,6 +200,5 @@ public class LoginController extends ApiController {
 	    }
 	}
 
-
-
+	
 }

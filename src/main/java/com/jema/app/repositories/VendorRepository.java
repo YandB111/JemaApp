@@ -33,9 +33,11 @@ public interface VendorRepository extends CrudRepository<Vendor, Long> {
 	
 	@Query(value = "SELECT * FROM Vendor WHERE id=?1 and deleted != '1'", nativeQuery = true)
 	Vendor findVendorById(@Param("id") Long id);
+
 	
 	@Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END FROM Vendor e WHERE e.email = :email")
 	boolean existsEmail(String email);
 
 	boolean existsByEmail(String email);
+
 }

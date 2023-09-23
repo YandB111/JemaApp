@@ -12,7 +12,9 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.jema.app.entities.Type;
 import com.jema.app.repositories.TypeRepository;
@@ -26,9 +28,20 @@ public class TypeServiceImpl implements TypeService {
 
 	@Override
 	public Long save(Type type) {
-		// TODO Auto-generated method stub
-		return typeRepository.save(type).getId();
+	    // Check if a type with the same name already exists (ignoring case)
+	    String typeName = type.getName();
+	    Type existingTypeWithSameName = typeRepository.findByNameIgnoreCase(typeName);
+
+	    if (existingTypeWithSameName != null && !existingTypeWithSameName.getId().equals(type.getId())) {
+	        // A Type with the same name already exists for a different ID, throw a conflict exception
+	        throw new ResponseStatusException(HttpStatus.CONFLICT,
+	                "Type with the same name already exists");
+	    }
+
+	    // No conflict, save the new type
+	    return typeRepository.save(type).getId();
 	}
+
 
 	@Override
 	public List<Type> findAll() {
@@ -54,6 +67,14 @@ public class TypeServiceImpl implements TypeService {
 		return 1;
 	}
 
+	@Override
+	public Type findByName(String newTypeName) {
+	    return typeRepository.findByName(newTypeName);
+	}
 
+	@Override
+    public Type findByNameIgnoreCase(String typeName) {
+        return typeRepository.findByNameIgnoreCase(typeName);
+    }
 
 }

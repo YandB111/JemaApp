@@ -8,6 +8,7 @@
 package com.jema.app.repositories;
 
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -52,5 +53,8 @@ public interface InventoryRequestRepository extends CrudRepository<InventoryRequ
 	@Modifying
 	@Query(value = "UPDATE InventoryRequest SET returned = :returned  WHERE id IN :id ")
 	int returned(@Param("id") String id, @Param("returned") int returned);
+
+	List<InventoryRequest> findAllByVendorId(Long vendorId);
+
 
 }

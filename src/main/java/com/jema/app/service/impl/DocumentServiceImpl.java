@@ -10,9 +10,13 @@ package com.jema.app.service.impl;
 import java.util.List;
 import java.util.Optional;
 
+import javax.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.jema.app.entities.Document;
 import com.jema.app.repositories.DocumentRepository;
@@ -23,10 +27,17 @@ public class DocumentServiceImpl implements DocumentService {
 
 	@Autowired
 	DocumentRepository documentRepository;
-	
+
+
 	@Override
 	public Long save(Document document) {
-		// TODO Auto-generated method stub
+		boolean nameExists = documentRepository.existsByNameIgnoreCase(document.getName());
+
+		if (nameExists) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Document name already exists");
+		}
+
+
 		return documentRepository.save(document).getId();
 	}
 
@@ -60,4 +71,30 @@ public class DocumentServiceImpl implements DocumentService {
 		documentRepository.updateStatus(status, idsArrays);
 		return 1;
 	}
+
+
+	@Override
+	@Transactional
+	public Long updateDocument(Document documentToUpdate) {
+		boolean nameExistsInOtherDocuments = documentRepository
+				.existsByNameIgnoreCaseAndIdNot(documentToUpdate.getName(), documentToUpdate.getId());
+
+		if (nameExistsInOtherDocuments) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Document name already exists.");
+		}
+
+		Document existingDocument = documentRepository.findById(documentToUpdate.getId())
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found"));
+
+		// Update other fields as needed
+		existingDocument.setName(documentToUpdate.getName());
+
+		existingDocument.setDescription(documentToUpdate.getDescription());
+		existingDocument.setType(documentToUpdate.getType());
+		existingDocument.setStatus(documentToUpdate.getStatus());
+
+		return documentRepository.save(existingDocument).getId();
+	}
+
+
 }

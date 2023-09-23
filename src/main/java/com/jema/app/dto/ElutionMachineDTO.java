@@ -10,8 +10,6 @@ package com.jema.app.dto;
 import java.time.LocalTime;
 import java.util.List;
 
-import javax.persistence.Column;
-
 import com.jema.app.entities.MachineWorkingSlots;
 
 import lombok.Data;
